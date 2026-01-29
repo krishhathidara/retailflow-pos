@@ -5,8 +5,8 @@ let products = [];
 let cart = [];
 
 let state = {
-    mode: 'sale',          
-    taxRate: 0.13,        
+    mode: 'sale',
+    taxRate: 0.13,
     paymentMethod: 'cash',
     quoteStatus: 'paid'
 };
