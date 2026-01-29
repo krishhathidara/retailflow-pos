@@ -1,5 +1,5 @@
 // Use NEXT_PUBLIC_API_URL for frontend to point to the correct API URL
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://retailflow-pos.vercel.app/api'; // Use the Vercel production URL
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'; // Fallback to local server for local development
 
 document.addEventListener('DOMContentLoaded', () => {
     loadDashboardData();
