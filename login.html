@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In - SwiftPOS</title>
+    <title>Access SwiftPOS</title>
     <link rel="stylesheet" href="css/base.css">
     <link rel="stylesheet" href="css/auth.css">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
@@ -29,7 +29,7 @@
                         <label>Email</label>
                         <div class="input-wrapper">
                             <span class="material-icons-round">email</span>
-                            <input type="email" placeholder="you@example.com" required>
+                            <input type="email" placeholder="you@example.com" value="admin@swiftpos.com" required>
                         </div>
                     </div>
 
@@ -37,24 +37,25 @@
                         <label>Password</label>
                         <div class="input-wrapper">
                             <span class="material-icons-round">lock</span>
-                            <input type="password" placeholder="••••••••" required>
+                            <input type="password" placeholder="••••••••" value="password" required>
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary w-100">Sign In</button>
+                    <button type="submit" id="submitBtn" class="btn btn-primary w-100">Sign In</button>
                 </form>
 
                 <p class="switch-text">
-                    Don't have an account? <a href="#" id="toggleAuth">Sign up</a>
+                    <span id="switchLabel">Don't have an account?</span> 
+                    <a href="#" id="toggleAuth">Sign up</a>
                 </p>
             </div>
         </div>
 
         <div class="auth-decor-side">
-            <div class="decor-content fade-in-up delay-200">
+            <div class="decor-content">
                 <div class="floating-icon"><span class="material-icons-round">shopping_cart</span></div>
                 <h2>Manage Your Business</h2>
-                <p>Complete POS solution with sales tracking, inventory management, and detailed reporting.</p>
+                <p>Track sales, inventory, and employees in one place.</p>
             </div>
         </div>
     </div>
