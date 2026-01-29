@@ -1,0 +1,108 @@
+/* css/settings.css */
+
+/* --- TABS NAVIGATION --- */
+.settings-tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+}
+
+.tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: 0.2s;
+    white-space: nowrap;
+}
+
+.tab-btn:hover { background: #f9fafb; }
+
+.tab-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    box-shadow: var(--shadow);
+}
+
+/* --- SECTIONS --- */
+.settings-section { display: none; }
+.settings-section.active { display: block; }
+
+/* --- CARDS & LAYOUT --- */
+.card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+}
+
+.card-header { margin-bottom: 20px; }
+.card-header h2 { font-size: 1.2rem; display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.text-primary { color: var(--primary); }
+.flex-between { display: flex; justify-content: space-between; align-items: flex-start; }
+
+/* --- FORMS --- */
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; margin-bottom: 8px; font-weight: 500; font-size: 0.9rem; }
+.form-group input, .form-group textarea { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; outline: none; transition: 0.2s; font-family: inherit; }
+.form-group input:focus, .form-group textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+
+.input-icon { position: relative; }
+.input-icon span { position: absolute; left: 12px; top: 12px; color: var(--text-muted); }
+.input-icon input, .input-icon textarea { padding-left: 42px; }
+
+/* --- TOGGLES --- */
+.toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; }
+.divider { margin: 10px 0; border: none; border-top: 1px solid var(--border); }
+
+.switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; }
+.slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .4s; }
+.slider.round { border-radius: 34px; }
+.slider.round:before { border-radius: 50%; }
+input:checked + .slider { background-color: var(--primary); }
+input:checked + .slider:before { transform: translateX(24px); }
+
+/* --- DATA SECTION --- */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.v-stack { display: flex; flex-direction: column; gap: 12px; }
+.text-left { text-align: left; justify-content: flex-start; }
+
+.drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+    color: var(--text-muted);
+    background: #f9fafb;
+    transition: 0.2s;
+    cursor: pointer;
+}
+.drop-zone:hover { border-color: var(--primary); background: var(--primary-light); color: var(--primary-dark); }
+.drop-zone .big-icon { font-size: 3rem; margin-bottom: 10px; opacity: 0.5; }
+
+/* --- EMPLOYEES TABLE --- */
+.simple-table { width: 100%; border-collapse: collapse; }
+.simple-table th { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); color: var(--text-muted); font-size: 0.85rem; text-transform: uppercase; }
+.simple-table td { padding: 12px; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
+.icon-btn.delete { color: #ef4444; border: 1px solid #fee2e2; border-radius: 6px; padding: 6px; background: #fef2f2; cursor: pointer; }
+.icon-btn.delete:hover { background: #fee2e2; }
+
+/* --- MOBILE --- */
+@media (max-width: 768px) {
+    .grid-2 { grid-template-columns: 1fr; }
+    .card { padding: 16px; }
+}

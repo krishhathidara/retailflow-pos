@@ -1,0 +1,99 @@
+/* css/dashboard.css */
+
+/* STAT CARDS */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: white;
+    padding: 24px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s;
+}
+.stat-card:hover { transform: translateY(-4px); border-color: var(--primary); }
+
+.stat-icon-wrapper {
+    width: 60px; height: 60px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+.stat-icon-wrapper.green { background: #d1fae5; color: #059669; }
+.stat-icon-wrapper.blue { background: #dbeafe; color: #1e40af; }
+.stat-icon-wrapper.orange { background: #ffedd5; color: #9a3412; }
+.stat-icon-wrapper.red { background: #fee2e2; color: #991b1b; }
+
+.stat-info h3 { font-size: 1.8rem; margin: 0; font-weight: 800; color: var(--text-main); }
+.stat-info p { margin: 4px 0 0; color: var(--text-muted); font-size: 0.95rem; }
+
+/* CHARTS & LISTS */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+}
+
+.card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+}
+
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.card-header h2 { font-size: 1.2rem; font-weight: 700; margin: 0; }
+
+.chart-select { border: 1px solid var(--border); padding: 6px 12px; border-radius: 8px; font-size: 0.85rem; cursor: pointer; }
+.chart-box { position: relative; height: 300px; width: 100%; }
+
+/* TOP PRODUCTS LIST */
+.top-product-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 0; border-bottom: 1px solid #f3f4f6;
+}
+.top-product-item:last-child { border-bottom: none; }
+
+.tp-left { display: flex; align-items: center; gap: 12px; }
+.tp-icon {
+    width: 40px; height: 40px; background: var(--bg-secondary);
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted);
+}
+.tp-details span { display: block; }
+.tp-name { font-weight: 600; font-size: 0.95rem; }
+.tp-sales { font-size: 0.8rem; color: var(--text-muted); }
+.tp-price { font-weight: 700; color: var(--primary-dark); }
+
+/* TABLES */
+.table-responsive { overflow-x: auto; }
+.dashboard-table { width: 100%; border-collapse: collapse; min-width: 600px; }
+.dashboard-table th { text-align: left; padding: 12px; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+.dashboard-table td { padding: 14px 12px; border-bottom: 1px solid #f3f4f6; font-size: 0.95rem; }
+
+.status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+.status-badge.paid { background: #dcfce7; color: #166534; }
+.status-badge.unpaid { background: #fee2e2; color: #991b1b; }
+
+.btn-link { color: var(--primary); font-weight: 600; text-decoration: none; }
+
+/* MOBILE */
+@media (max-width: 1024px) {
+    .dashboard-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+    .stats-grid { grid-template-columns: 1fr; } /* Stack cards on mobile */
+    .dashboard-table { display: block; } /* Allow table scroll */
+}

@@ -1,0 +1,54 @@
+/* css/transactions.css */
+
+/* Tabs */
+.tabs-container {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 12px 4px;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: 0.2s;
+}
+
+.tab-btn.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+    font-weight: 600;
+}
+
+/* Views */
+.view-section { display: none; }
+.view-section.active { display: block; }
+
+/* Status Badges */
+.badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: inline-block;
+}
+
+.badge.paid { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+.badge.unpaid { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+.badge.quote { background: #e0f2fe; color: #075985; border: 1px solid #bae6fd; }
+.badge.sale { background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; }
+
+/* Item List in Table */
+.item-summary { font-size: 0.85rem; color: var(--text-muted); max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Mobile */
+@media (max-width: 768px) {
+    .tabs-container { overflow-x: auto; white-space: nowrap; }
+}

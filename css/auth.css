@@ -1,0 +1,36 @@
+/* css/auth.css */
+body { background: white; }
+.auth-container { display: flex; min-height: 100vh; }
+
+/* Left Side */
+.auth-form-side { flex: 1; padding: 40px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; }
+.auth-header { position: absolute; top: 40px; left: 40px; width: calc(100% - 80px); display: flex; justify-content: space-between; align-items: center; }
+.back-link { display: flex; align-items: center; gap: 5px; color: var(--text-muted); font-size: 0.9rem; }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 700; }
+.logo-icon { background: var(--primary); color: white; padding: 6px; border-radius: 8px; display: flex; }
+
+.form-wrapper { width: 100%; max-width: 400px; }
+.form-wrapper h2 { font-size: 2rem; margin-bottom: 10px; }
+.form-wrapper p { color: var(--text-muted); margin-bottom: 30px; }
+
+.input-group { margin-bottom: 20px; }
+.input-group label { display: block; font-size: 0.9rem; font-weight: 500; margin-bottom: 5px; }
+.input-wrapper { position: relative; }
+.input-wrapper span { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+.input-wrapper input { width: 100%; padding: 12px 12px 12px 40px; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; outline: none; transition: 0.3s; }
+.input-wrapper input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+
+.w-100 { width: 100%; }
+.switch-text { text-align: center; margin-top: 20px; font-size: 0.9rem; }
+.switch-text a { color: var(--primary); font-weight: 600; }
+
+/* Right Side */
+.auth-decor-side { flex: 1; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); display: flex; align-items: center; justify-content: center; color: white; text-align: center; padding: 40px; }
+.decor-content { max-width: 400px; }
+.floating-icon { width: 80px; height: 80px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 40px; margin: 0 auto 30px; }
+.decor-content h2 { font-size: 2.5rem; margin-bottom: 15px; }
+.decor-content p { font-size: 1.1rem; opacity: 0.9; }
+
+@media (max-width: 900px) {
+    .auth-decor-side { display: none; }
+}

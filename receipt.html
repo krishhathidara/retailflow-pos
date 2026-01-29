@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipt - SwiftPOS</title>
+    <style>
+        body {
+            background: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Courier New', Courier, monospace; /* Classic Receipt Font */
+            margin: 0;
+        }
+
+        .receipt-container {
+            background: white;
+            width: 380px; /* Standard Receipt Width */
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        /* Typography */
+        h1 { font-size: 1.5rem; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 1px; }
+        p { margin: 5px 0; font-size: 0.9rem; color: #333; }
+        
+        .divider {
+            border-top: 1px dashed #333;
+            margin: 15px 0;
+        }
+
+        /* Table */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+        th { text-align: left; border-bottom: 1px dashed #333; padding-bottom: 5px; }
+        td { padding: 8px 0; vertical-align: top; }
+        .text-right { text-align: right; }
+        .qty-col { text-align: center; width: 40px; }
+
+        /* Totals Area */
+        .totals { margin-top: 15px; }
+        .totals-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.9rem; }
+        .grand-total { font-weight: bold; font-size: 1.2rem; border-top: 1px dashed #333; border-bottom: 1px dashed #333; padding: 10px 0; margin-top: 10px; }
+
+        /* Payment Info */
+        .payment-info { background: #f3f4f6; padding: 10px; margin-top: 15px; font-weight: bold; font-size: 0.9rem; text-transform: uppercase; }
+
+        /* Footer */
+        .footer { margin-top: 20px; font-size: 0.8rem; color: #666; line-height: 1.4; }
+
+        /* Actions (Hidden when printing) */
+        .actions {
+            position: fixed; bottom: 20px; right: 20px; display: flex; gap: 10px;
+        }
+        .btn {
+            padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: sans-serif;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: 0.2s;
+        }
+        .btn-primary { background: #10b981; color: white; }
+        .btn-secondary { background: #6b7280; color: white; }
+        .btn:hover { transform: translateY(-2px); }
+
+        @media print {
+            body { background: white; }
+            .receipt-container { box-shadow: none; width: 100%; padding: 0; }
+            .actions { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="receipt-container">
+        <div id="storeHeader">
+            <h1 id="rStoreName">My Store</h1>
+            <p id="rStoreAddress">123 Main Street, City</p>
+            <p id="rStorePhone">(555) 123-4567</p>
+        </div>
+
+        <div class="divider"></div>
+
+        <p style="text-align:left;">Receipt #: <span id="rId">INV-0000</span></p>
+        <p style="text-align:left;">Date: <span id="rDate">2026-01-27</span></p>
+        <div id="customerSection">
+            <p style="text-align:left;">Customer: <span id="rCustName">Guest</span></p>
+            <p style="text-align:left;">Phone: <span id="rCustPhone">N/A</span></p>
+        </div>
+
+        <div class="divider"></div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th class="qty-col">Qty</th>
+                    <th class="text-right">Price</th>
+                </tr>
+            </thead>
+            <tbody id="rItems">
+                </tbody>
+        </table>
+
+        <div class="divider"></div>
+
+        <div class="totals">
+            <div class="totals-row">
+                <span>Subtotal:</span>
+                <span id="rSubtotal">$0.00</span>
+            </div>
+            <div class="totals-row">
+                <span>Tax:</span>
+                <span id="rTax">$0.00</span>
+            </div>
+            <div class="totals-row grand-total">
+                <span>TOTAL:</span>
+                <span id="rTotal">$0.00</span>
+            </div>
+        </div>
+
+        <div class="payment-info">
+            Method: <span id="rMethod">CASH</span><br>
+            Status: <span id="rStatus">PAID</span>
+        </div>
+
+        <div class="footer">
+            <p id="rDesc">Thank you for your business!</p>
+            <p>Please keep this receipt for your records.</p>
+        </div>
+    </div>
+
+    <div class="actions">
+        <button class="btn btn-secondary" onclick="window.location.href='sales.html'">Back to Sales</button>
+        <button class="btn btn-primary" onclick="window.print()">Print Receipt</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Load Settings
+            const settings = JSON.parse(localStorage.getItem('swiftPosSettings')) || {};
+            
+            document.getElementById('rStoreName').innerText = settings.storeName || "My Store";
+            
+            // Toggle Address
+            if(settings.showAddress === false) document.getElementById('rStoreAddress').style.display = 'none';
+            else document.getElementById('rStoreAddress').innerText = settings.storeAddress || "";
+
+            // Toggle Phone
+            if(settings.showPhone === false) document.getElementById('rStorePhone').style.display = 'none';
+            else document.getElementById('rStorePhone').innerText = settings.storePhone || "";
+
+            // Toggle Description
+            if(settings.receiptDesc) document.getElementById('rDesc').innerText = settings.receiptDesc;
+
+            // 2. Load Sale Data (Passed via localStorage from sales.js)
+            const sale = JSON.parse(localStorage.getItem('lastSale'));
+            if (!sale) return alert("No sale data found!");
+
+            document.getElementById('rId').innerText = "INV-" + Math.floor(Math.random() * 1000000);
+            document.getElementById('rDate').innerText = new Date().toLocaleString();
+            document.getElementById('rCustName').innerText = sale.customer.name;
+            
+            // Hide customer phone if N/A or guest
+            if(sale.customer.phone === 'N/A') {
+                document.getElementById('rCustPhone').style.display = 'none';
+            } else {
+                document.getElementById('rCustPhone').innerText = sale.customer.phone;
+            }
+
+            // Render Items
+            const tbody = document.getElementById('rItems');
+            sale.items.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${item.name}</td>
+                    <td class="qty-col">${item.qty}</td>
+                    <td class="text-right">$${(item.price * item.qty).toFixed(2)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Render Totals
+            document.getElementById('rSubtotal').innerText = "$" + sale.totals.subtotal.toFixed(2);
+            document.getElementById('rTax').innerText = "$" + sale.totals.tax.toFixed(2);
+            document.getElementById('rTotal').innerText = "$" + sale.totals.total.toFixed(2);
+            
+            document.getElementById('rMethod').innerText = sale.payment.method.toUpperCase();
+            document.getElementById('rStatus').innerText = sale.payment.status.toUpperCase();
+        });
+    </script>
+</body>
+</html>

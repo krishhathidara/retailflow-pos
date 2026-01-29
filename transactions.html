@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions - SwiftPOS</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/inventory.css">
+    <link rel="stylesheet" href="css/transactions.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+</head>
+<body>
+
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon"><span class="material-icons-round">shopping_cart</span></div>
+                    <span>SwiftPOS</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item"><span class="material-icons-round">dashboard</span> Dashboard</a>
+                <a href="sales.html" class="nav-item"><span class="material-icons-round">receipt_long</span> Sales</a>
+                <a href="inventory.html" class="nav-item"><span class="material-icons-round">inventory_2</span> Inventory</a>
+                <a href="transactions.html" class="nav-item active"><span class="material-icons-round">receipt</span> Transactions</a>
+                <a href="settings.html" class="nav-item"><span class="material-icons-round">settings</span> Settings</a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="index.html" class="nav-item danger"><span class="material-icons-round">logout</span> Sign Out</a>
+            </div>
+        </aside>
+
+        <main class="main-wrapper">
+            <header class="top-header">
+                <div>
+                    <h1>Transactions</h1>
+                    <p class="text-muted text-sm">View sales history and customer details</p>
+                </div>
+                <div class="user-menu">
+                    <span class="user-name">Admin User</span>
+                    <div class="avatar">AU</div>
+                </div>
+            </header>
+
+            <div class="content">
+                <div class="tabs-container">
+                    <button class="tab-btn active" onclick="switchView('sales')">Sales History</button>
+                    <button class="tab-btn" onclick="switchView('customers')">Customer Database</button>
+                </div>
+
+                <div class="toolbar fade-in-up">
+                    <div class="search-wrapper">
+                        <span class="material-icons-round search-icon">search</span>
+                        <input type="text" id="searchBox" placeholder="Search by name, phone or type...">
+                    </div>
+                    <div class="toolbar-actions">
+                        <select id="filterTime" class="dropdown" onchange="applyFilters()">
+                            <option value="all">All Time</option>
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="salesView" class="view-section active fade-in-up delay-100">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Customer</th>
+                                    <th>Type</th>
+                                    <th>Items</th>
+                                    <th>Payment</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="salesTable">
+                                <tr><td colspan="7" class="loading-row">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="customersView" class="view-section fade-in-up delay-100">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Customer Name</th>
+                                    <th>Phone Number</th>
+                                    <th>Total Visits</th>
+                                    <th>Total Spent</th>
+                                    <th class="text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customersTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <nav class="mobile-nav">
+    <a href="dashboard.html" class="m-nav-item"><span class="material-icons-round">dashboard</span></a>
+    <a href="sales.html" class="m-nav-item"><span class="material-icons-round">receipt_long</span></a>
+    <a href="transactions.html" class="m-nav-item active"><span class="material-icons-round">receipt</span></a>
+    <a href="inventory.html" class="m-nav-item"><span class="material-icons-round">inventory_2</span></a>
+    <a href="settings.html" class="m-nav-item"><span class="material-icons-round">settings</span></a>
+</nav>
+    </div>
+
+    <script src="js/transactions.js"></script>
+</body>
+</html>
