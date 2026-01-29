@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/*.js",   // Ensure this points to your serverless API files in `/api`
+      "src": "api/**/*.js",  
       "use": "@vercel/node"
     },
     {
@@ -20,11 +20,11 @@
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"  
+      "src": "/api/(.*)",  
+      "dest": "/api/$1"
     },
     {
-      "src": "/(.*)",
+      "src": "/(.*)",     
       "dest": "/$1"
     }
   ]
