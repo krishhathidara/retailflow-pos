@@ -1,5 +1,5 @@
-// js/dashboard.js
-const API_URL = 'http://localhost:5000/api';
+// Use NEXT_PUBLIC_API_URL for frontend to point to the correct API URL
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://retailflow-pos.vercel.app/api'; // Use the Vercel production URL
 
 document.addEventListener('DOMContentLoaded', () => {
     loadDashboardData();
@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadDashboardData() {
     try {
-        // 1. Fetch Data
+        // 1. Fetch Data from API
         const [salesRes, productsRes] = await Promise.all([
             fetch(`${API_URL}/sales`).catch(err => null),
             fetch(`${API_URL}/products`).catch(err => null)
@@ -15,7 +15,7 @@ async function loadDashboardData() {
 
         // 2. Safety Check
         if (!salesRes || !productsRes || !salesRes.ok || !productsRes.ok) {
-            throw new Error("Cannot connect to server. Is 'node index.js' running?");
+            throw new Error("Cannot connect to server. Is your backend deployed on Vercel?");
         }
 
         const allTransactions = await salesRes.json();
@@ -26,7 +26,7 @@ async function loadDashboardData() {
         const validSales = allTransactions.filter(txn => {
             // If it is a Quote AND it is NOT paid, ignore it for stats
             if (txn.type === 'quote' && txn.payment.status !== 'paid') {
-                return false; 
+                return false;
             }
             return true; // Keep Sales and Paid Quotes
         });
@@ -152,7 +152,7 @@ function renderTopProducts(sales) {
     sorted.forEach(([name, data]) => {
         const div = document.createElement('div');
         div.className = 'top-product-item';
-        div.innerHTML = `
+        div.innerHTML = ` 
             <div class="tp-left">
                 <div class="tp-icon"><span class="material-icons-round">inventory_2</span></div>
                 <div class="tp-details">
@@ -167,7 +167,6 @@ function renderTopProducts(sales) {
 }
 
 // --- 4. RECENT TRANSACTIONS TABLE ---
-// We show ALL transactions here (Sales & Quotes) so you can track recent activity
 function renderRecentTable(transactions) {
     const tbody = document.getElementById('recentSalesTable');
     tbody.innerHTML = '';
