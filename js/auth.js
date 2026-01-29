@@ -1,67 +1,75 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Check if we are in "Sign Up" mode (from the URL link)
-    const params = new URLSearchParams(window.location.search);
-    const isSignup = params.get('mode') === 'signup';
     
-    if (isSignup) {
-        toggleAuthMode(true);
+    // 1. DETECT SIGNUP MODE
+    // Checks if the URL is "login.html?mode=signup"
+    const params = new URLSearchParams(window.location.search);
+    const isSignupMode = params.get('mode') === 'signup';
+    
+    if (isSignupMode) {
+        toggleToSignup();
     }
 
-    // 2. Handle Login Form Submission
-    const authForm = document.getElementById('authForm');
-    if (authForm) {
-        authForm.addEventListener('submit', (e) => {
-            e.preventDefault(); // Stop page from refreshing
+    // 2. HANDLE FORM SUBMIT (Login/Signup Click)
+    const form = document.getElementById('authForm');
+    if (form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault(); // Stop reload
             
-            const btn = authForm.querySelector('button[type="submit"]');
-            const originalText = btn.innerText;
+            const btn = document.getElementById('submitBtn');
+            const email = document.getElementById('emailInput').value;
             
-            // Show loading animation
-            btn.innerHTML = 'Processing...';
+            // Visual Feedback
+            btn.innerHTML = 'Authenticating...';
+            btn.style.opacity = '0.7';
             btn.disabled = true;
-            btn.style.opacity = '0.8';
 
-            // Fake login delay -> Redirect to Dashboard
+            // Simulate Server Delay -> Go to Dashboard
             setTimeout(() => {
+                // Store user info (Mock)
+                localStorage.setItem('user', email);
                 window.location.href = 'dashboard.html';
-            }, 1000);
+            }, 800);
         });
     }
 
-    // 3. Toggle between "Sign In" and "Sign Up" text
+    // 3. HANDLE TOGGLE LINK CLICK
     const toggleLink = document.getElementById('toggleAuth');
     if (toggleLink) {
         toggleLink.addEventListener('click', (e) => {
             e.preventDefault();
             const currentTitle = document.getElementById('pageTitle').innerText;
-            const isCurrentlySignup = currentTitle === 'Create Account';
-            toggleAuthMode(!isCurrentlySignup);
+            
+            if (currentTitle.includes('Welcome')) {
+                toggleToSignup();
+            } else {
+                toggleToLogin();
+            }
         });
     }
 });
 
-// Helper to switch text
-function toggleAuthMode(toSignup) {
-    const title = document.getElementById('pageTitle');
-    const subtitle = document.getElementById('pageSubtitle');
-    const btn = document.querySelector('.btn-primary');
-    const switchText = document.querySelector('.switch-text');
-
-    if (toSignup) {
-        title.innerText = 'Create Account';
-        subtitle.innerText = 'Start your free trial today';
-        btn.innerText = 'Sign Up';
-        switchText.innerHTML = 'Already have an account? <a href="#" id="toggleAuth">Sign in</a>';
-    } else {
-        title.innerText = 'Welcome back';
-        subtitle.innerText = 'Sign in to access your dashboard';
-        btn.innerText = 'Sign In';
-        switchText.innerHTML = 'Don\'t have an account? <a href="#" id="toggleAuth">Sign up</a>';
-    }
+function toggleToSignup() {
+    document.getElementById('pageTitle').innerText = 'Create Account';
+    document.getElementById('pageSubtitle').innerText = 'Start your free 14-day trial';
+    document.getElementById('submitBtn').innerText = 'Create Account';
+    document.getElementById('switchLabel').innerText = 'Already have an account?';
+    document.getElementById('toggleAuth').innerText = 'Sign In';
     
-    // Re-attach listener to the new link
-    document.getElementById('toggleAuth').addEventListener('click', (e) => {
-        e.preventDefault();
-        toggleAuthMode(!toSignup);
-    });
+    // Update URL without reloading (so refresh keeps you on signup)
+    const url = new URL(window.location);
+    url.searchParams.set('mode', 'signup');
+    window.history.pushState({}, '', url);
+}
+
+function toggleToLogin() {
+    document.getElementById('pageTitle').innerText = 'Welcome back';
+    document.getElementById('pageSubtitle').innerText = 'Sign in to access your dashboard';
+    document.getElementById('submitBtn').innerText = 'Sign In';
+    document.getElementById('switchLabel').innerText = 'Don\'t have an account?';
+    document.getElementById('toggleAuth').innerText = 'Sign Up';
+
+    // Update URL
+    const url = new URL(window.location);
+    url.searchParams.delete('mode');
+    window.history.pushState({}, '', url);
 }
