@@ -1,66 +1,67 @@
 document.addEventListener('DOMContentLoaded', () => {
-    
-    // 1. Check if we are in "Sign Up" mode (from index.html link)
+    // 1. Check URL params for "Sign Up" mode
     const params = new URLSearchParams(window.location.search);
-    if (params.get('mode') === 'signup') {
-        toggleAuthMode();
+    const isSignup = params.get('mode') === 'signup';
+    
+    if (isSignup) {
+        toggleAuthMode(true);
     }
 
-    // 2. Handle Form Submission (The Login Logic)
-    const form = document.getElementById('authForm');
-    if (form) {
-        form.addEventListener('submit', (e) => {
-            e.preventDefault(); // STOP the page from reloading
+    // 2. Handle Form Submission (The Redirect Logic)
+    const authForm = document.getElementById('authForm');
+    if (authForm) {
+        authForm.addEventListener('submit', (e) => {
+            e.preventDefault(); // Stop page reload
             
-            const btn = form.querySelector('button');
+            const btn = authForm.querySelector('button[type="submit"]');
             const originalText = btn.innerText;
             
             // Show loading state
-            btn.innerText = 'Authenticating...';
-            btn.style.opacity = '0.7';
+            btn.innerHTML = '<span class="material-icons-round spin" style="font-size:1.2rem">sync</span> Processing...';
             btn.disabled = true;
+            btn.style.opacity = '0.8';
 
-            // Simulate server delay then Redirect
+            // Simulate server delay -> Redirect to Dashboard
             setTimeout(() => {
                 window.location.href = 'dashboard.html';
-            }, 800);
+            }, 1000);
         });
     }
 
-    // 3. Handle Toggle between Login and Signup
-    const toggleBtn = document.getElementById('toggleAuth');
-    if (toggleBtn) {
-        toggleBtn.addEventListener('click', (e) => {
+    // 3. Handle "Sign up / Sign in" toggle link click
+    const toggleLink = document.getElementById('toggleAuth');
+    if (toggleLink) {
+        toggleLink.addEventListener('click', (e) => {
             e.preventDefault();
-            toggleAuthMode();
+            const isCurrentlySignup = document.getElementById('pageTitle').innerText === 'Create Account';
+            toggleAuthMode(!isCurrentlySignup);
         });
     }
 });
 
-function toggleAuthMode() {
+// Helper to switch text between Login and Signup
+function toggleAuthMode(toSignup) {
     const title = document.getElementById('pageTitle');
     const subtitle = document.getElementById('pageSubtitle');
     const btn = document.querySelector('.btn-primary');
     const toggleLink = document.getElementById('toggleAuth');
     const switchText = document.querySelector('.switch-text');
 
-    if (title.innerText === 'Welcome back') {
-        // Switch to Sign Up
+    if (toSignup) {
         title.innerText = 'Create Account';
         subtitle.innerText = 'Get started with your free trial';
         btn.innerText = 'Create Account';
         switchText.innerHTML = 'Already have an account? <a href="#" id="toggleAuth">Sign in</a>';
     } else {
-        // Switch to Sign In
         title.innerText = 'Welcome back';
         subtitle.innerText = 'Sign in to access your dashboard';
         btn.innerText = 'Sign In';
         switchText.innerHTML = 'Don\'t have an account? <a href="#" id="toggleAuth">Sign up</a>';
     }
-
-    // Re-attach event listener to new link
+    
+    // Re-attach listener to the new link we just created in HTML
     document.getElementById('toggleAuth').addEventListener('click', (e) => {
         e.preventDefault();
-        toggleAuthMode();
+        toggleAuthMode(!toSignup);
     });
 }
