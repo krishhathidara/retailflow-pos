@@ -2,166 +2,147 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const bcrypt = require('bcryptjs'); // Needed for security
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// --- MIDDLEWARE ---
-app.use(cors()); // Allows your frontend to talk to this server
-app.use(express.json()); // Allows server to read JSON data
+app.use(cors());
+app.use(express.json());
 
-// --- MONGODB CONNECTION ---
-// Make sure you have a .env file with MONGO_URI, or replace process.env.MONGO_URI with your actual string
 mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log('✅ MongoDB Connected'))
 .catch(err => console.error('❌ DB Error:', err));
 
 // --- SCHEMAS ---
 
-// 1. Category Schema
-const CategorySchema = new mongoose.Schema({
-    name: { type: String, required: true, unique: true },
-    type: { type: String, enum: ['product', 'service'], required: true }
+// 1. User Schema (Real Login)
+const UserSchema = new mongoose.Schema({
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now }
 });
 
-// 2. Product Schema
 const ProductSchema = new mongoose.Schema({
     name: { type: String, required: true },
     category: { type: String, required: true },
     price: { type: Number, required: true },
     stock: { type: Number, default: 0 },
     isService: { type: Boolean, default: false },
-    // Optional fields for details
-    color: String,
-    description: String,
     lowStockThreshold: { type: Number, default: 10 }
 });
 
-// 3. Sale Schema (Transaction History)
+const CategorySchema = new mongoose.Schema({
+    name: { type: String, required: true, unique: true },
+    type: { type: String, enum: ['product', 'service'], required: true }
+});
+
 const SaleSchema = new mongoose.Schema({
-    customer: { 
-        name: { type: String, default: 'Guest' }, 
-        phone: { type: String, default: 'N/A' } 
-    },
-    items: { type: Array, required: true }, // Stores the cart items
-    totals: { 
-        subtotal: Number, 
-        tax: Number, 
-        total: Number 
-    },
-    payment: { 
-        method: String, // 'cash', 'card', 'etransfer'
-        status: String  // 'paid', 'unpaid'
-    },
-    type: { type: String, default: 'sale' }, // 'sale' or 'quote'
+    customer: { name: String, phone: String },
+    items: Array,
+    totals: Object,
+    payment: Object,
+    type: String,
     date: { type: Date, default: Date.now }
 });
 
-// --- MODELS ---
+const User = mongoose.model('User', UserSchema);
 const Product = mongoose.model('Product', ProductSchema);
 const Category = mongoose.model('Category', CategorySchema);
 const Sale = mongoose.model('Sale', SaleSchema);
 
-// --- API ROUTES ---
+// --- AUTH ROUTES ---
 
-// ==========================
-// PRODUCTS ROUTES
-// ==========================
-app.get('/api/products', async (req, res) => {
+// REGISTER
+app.post('/api/register', async (req, res) => {
     try {
-        const products = await Product.find();
-        res.json(products);
+        const { email, password } = req.body;
+        
+        // Check if user exists
+        const existing = await User.findOne({ email });
+        if (existing) return res.status(400).json({ error: "Email already taken" });
+
+        // Encrypt password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const newUser = new User({ email, password: hashedPassword });
+        await newUser.save();
+
+        res.status(201).json({ message: "User created successfully" });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
+});
+
+// LOGIN
+app.post('/api/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        // Find user
+        const user = await User.findOne({ email });
+        if (!user) return res.status(400).json({ error: "User not found" });
+
+        // Check password
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
+
+        res.json({ message: "Login success", email: user.email });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// --- EXISTING ROUTES (Products, Categories, Sales) ---
+
+app.get('/api/products', async (req, res) => {
+    const products = await Product.find();
+    res.json(products);
 });
 
 app.post('/api/products', async (req, res) => {
-    try {
-        const newProduct = new Product(req.body);
-        await newProduct.save();
-        res.status(201).json(newProduct);
-    } catch (err) {
-        res.status(400).json({ error: err.message });
-    }
+    const newProduct = new Product(req.body);
+    await newProduct.save();
+    res.status(201).json(newProduct);
 });
 
 app.delete('/api/products/:id', async (req, res) => {
-    try {
-        await Product.findByIdAndDelete(req.params.id);
-        res.json({ message: "Deleted successfully" });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    await Product.findByIdAndDelete(req.params.id);
+    res.json({ message: "Deleted" });
 });
 
-// ==========================
-// CATEGORIES ROUTES
-// ==========================
 app.get('/api/categories', async (req, res) => {
-    try {
-        const categories = await Category.find();
-        res.json(categories);
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    const cats = await Category.find();
+    res.json(cats);
 });
 
 app.post('/api/categories', async (req, res) => {
-    try {
-        const newCat = new Category(req.body);
-        await newCat.save();
-        res.status(201).json(newCat);
-    } catch (err) {
-        res.status(400).json({ error: "Category likely exists already" });
-    }
+    const newCat = new Category(req.body);
+    await newCat.save();
+    res.status(201).json(newCat);
 });
 
-// ==========================
-// SALES ROUTES (For Dashboard & Transactions)
-// ==========================
 app.get('/api/sales', async (req, res) => {
-    try {
-        // Sort by date descending (Newest first)
-        const sales = await Sale.find().sort({ date: -1 });
-        res.json(sales);
-    } catch (err) {
-        console.error("Error fetching sales:", err);
-        res.status(500).json({ error: err.message });
-    }
+    const sales = await Sale.find().sort({ date: -1 });
+    res.json(sales);
 });
 
 app.post('/api/sales', async (req, res) => {
     try {
-        console.log("📥 Receiving New Sale:", req.body.totals.total);
-        
-        const newSale = new Sale(req.body);
-        await newSale.save();
-        
-        // AUTOMATIC INVENTORY DEDUCTION
-        // Only deduct if it is a 'sale' (not a quote) and item is a 'product' (not service)
+        // Stock Deduction Logic
         if (req.body.type === 'sale') {
             for (const item of req.body.items) {
                 if (item._id && !item.isService) {
-                    await Product.findByIdAndUpdate(item._id, { 
-                        $inc: { stock: -item.qty } 
-                    });
+                    await Product.findByIdAndUpdate(item._id, { $inc: { stock: -item.qty } });
                 }
             }
         }
-        
-        console.log("✅ Sale Saved & Inventory Updated");
+        const newSale = new Sale(req.body);
+        await newSale.save();
         res.status(201).json(newSale);
     } catch (err) {
-        console.error("❌ Error Saving Sale:", err);
         res.status(400).json({ error: err.message });
     }
 });
 
-// --- START SERVER ---
-app.listen(PORT, () => {
-    console.log(`---------------------------------------`);
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`🔗 API Address: http://localhost:${PORT}`);
-    console.log(`---------------------------------------`);
-});
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

@@ -1,86 +1,99 @@
+const API_URL = 'http://localhost:5000/api';
+
 document.addEventListener('DOMContentLoaded', () => {
     
-    // 1. READ URL PARAMETERS
-    // This looks at the browser address bar for "?mode=signup"
-    const urlParams = new URLSearchParams(window.location.search);
-    const mode = urlParams.get('mode');
-
-    // 2. CHECK IF WE SHOULD BE ON SIGN UP PAGE
-    if (mode === 'signup') {
-        console.log("Signup Mode Detected"); // Debug Check
+    // 1. Detect if we are in "Signup Mode" based on URL
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('mode') === 'signup') {
         toggleToSignup();
-    } else {
-        console.log("Login Mode Detected");
     }
 
-    // 3. HANDLE TOGGLE LINK CLICK (The text at the bottom)
+    // 2. Handle Form Submit
+    const authForm = document.getElementById('authForm');
+    if (authForm) {
+        authForm.addEventListener('submit', handleAuth);
+    }
+
+    // 3. Handle Toggle Link Click
     const toggleLink = document.getElementById('toggleAuth');
     if (toggleLink) {
         toggleLink.addEventListener('click', (e) => {
             e.preventDefault();
             const title = document.getElementById('pageTitle').innerText;
-            
-            // If currently Login, switch to Signup. If Signup, switch to Login.
-            if (title.includes('Welcome')) {
-                toggleToSignup();
-            } else {
-                toggleToLogin();
-            }
-        });
-    }
-
-    // 4. HANDLE FORM SUBMISSION (Fake Login)
-    const authForm = document.getElementById('authForm');
-    if (authForm) {
-        authForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('submitBtn');
-            
-            // Show loading
-            btn.innerText = 'Processing...';
-            btn.style.opacity = '0.7';
-            btn.disabled = true;
-
-            // Wait 1 second then go to Dashboard
-            setTimeout(() => {
-                window.location.href = 'dashboard.html';
-            }, 1000);
+            if (title.includes('Welcome')) toggleToSignup();
+            else toggleToLogin();
         });
     }
 });
 
-// --- HELPER FUNCTIONS TO SWAP TEXT ---
+async function handleAuth(e) {
+    e.preventDefault();
+    
+    const email = document.getElementById('emailInput').value;
+    const password = document.getElementById('passwordInput').value;
+    const btn = document.getElementById('submitBtn');
+    const isSignup = document.getElementById('pageTitle').innerText === 'Create Account';
+    
+    const endpoint = isSignup ? '/register' : '/login';
+    
+    // UI Loading State
+    const originalText = btn.innerText;
+    btn.innerText = 'Processing...';
+    btn.disabled = true;
+    btn.style.opacity = '0.7';
+
+    try {
+        const res = await fetch(`${API_URL}${endpoint}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            if (isSignup) {
+                // If signup success, auto-login or ask to login
+                alert("Account created! Please sign in.");
+                toggleToLogin();
+            } else {
+                // Login Success
+                localStorage.setItem('user', email);
+                window.location.href = 'dashboard.html';
+            }
+        } else {
+            alert(data.error || "Authentication failed");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Cannot connect to server. Is 'node index.js' running?");
+    } finally {
+        btn.innerText = originalText;
+        btn.disabled = false;
+        btn.style.opacity = '1';
+    }
+}
 
 function toggleToSignup() {
-    // Change Title & Subtitle
     document.getElementById('pageTitle').innerText = 'Create Account';
-    document.getElementById('pageSubtitle').innerText = 'Start your 14-day free trial';
-    
-    // Change Button Text
+    document.getElementById('pageSubtitle').innerText = 'Start your free trial';
     document.getElementById('submitBtn').innerText = 'Create Account';
-    
-    // Change Bottom Link
     document.getElementById('switchLabel').innerText = 'Already have an account?';
     document.getElementById('toggleAuth').innerText = 'Sign In';
-
-    // Update URL without reloading (so if you refresh, you stay on Sign Up)
+    
+    // Update URL
     const url = new URL(window.location);
     url.searchParams.set('mode', 'signup');
     window.history.pushState({}, '', url);
 }
 
 function toggleToLogin() {
-    // Change Title & Subtitle
     document.getElementById('pageTitle').innerText = 'Welcome back';
     document.getElementById('pageSubtitle').innerText = 'Sign in to access your dashboard';
-    
-    // Change Button Text
     document.getElementById('submitBtn').innerText = 'Sign In';
-    
-    // Change Bottom Link
     document.getElementById('switchLabel').innerText = 'Don\'t have an account?';
     document.getElementById('toggleAuth').innerText = 'Sign Up';
-
+    
     // Update URL
     const url = new URL(window.location);
     url.searchParams.delete('mode');
