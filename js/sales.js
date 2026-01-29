@@ -1,7 +1,5 @@
-// Directly define the API URL for the browser environment
-const API_URL = window.location.hostname === 'localhost' 
-                ? 'http://localhost:5000/api' // Use your local API URL during development
-                : process.env.NEXT_PUBLIC_API_URL || 'https://retailflow-pos.vercel.app/api'; // Default to Vercel production URL
+// Use NEXT_PUBLIC_API_URL for frontend
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://retailflow-pos.vercel.app/api'; // Default to production URL if not available
 
 let products = [];
 let cart = [];
