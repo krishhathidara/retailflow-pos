@@ -1,7 +1,7 @@
 // Directly define the API URL for the browser environment
 const API_URL = window.location.hostname === 'localhost' 
                 ? 'http://localhost:5000/api' // Use your local API URL during development
-                : 'https://retailflow-pos.vercel.app/api'; // Default to the Vercel production URL
+                : process.env.NEXT_PUBLIC_API_URL || 'https://retailflow-pos.vercel.app/api'; // Default to Vercel production URL
 
 let products = [];
 let cart = [];
@@ -188,7 +188,7 @@ function updateTotals() {
     };
 }
 
-// --- COMPLETE TRANSACTION (THE FIX) ---
+// --- COMPLETE TRANSACTION ---
 async function completeTransaction() {
     console.log("Button Clicked..."); // DEBUG LOG
 
