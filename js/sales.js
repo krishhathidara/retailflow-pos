@@ -1,5 +1,6 @@
-// js/sales.js
-const API_URL = 'http://localhost:5000/api';
+// Get the API URL from environment variable (for Vercel, or fallback to local development)
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://retailflow-pos.vercel.app/api'; // Default to Vercel production URL
+
 let products = [];
 let cart = [];
 
@@ -18,8 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
 // --- API: FETCH PRODUCTS ---
 async function fetchProducts() {
     try {
-        const res = await fetch(`${API_URL}/products`);
-        if(!res.ok) throw new Error("Failed to load products");
+        const res = await fetch(`${API_URL}/products`);  // API call to fetch products
+        if (!res.ok) throw new Error("Failed to load products");
         products = await res.json();
         renderProducts(products);
         setupSearch();
@@ -29,7 +30,7 @@ async function fetchProducts() {
             <div style="text-align:center; padding:20px; color:red">
                 <span class="material-icons-round">error</span><br>
                 <strong>Server Offline</strong><br>
-                Is 'node index.js' running?
+                Is your API deployed and running?
             </div>`;
     }
 }
@@ -38,7 +39,7 @@ async function fetchProducts() {
 function renderProducts(items) {
     const grid = document.getElementById('productGrid');
     grid.innerHTML = '';
-    
+
     if (!items || items.length === 0) {
         grid.innerHTML = '<p style="text-align:center; width:100%; color:#999; margin-top:40px;">No products found</p>';
         return;
@@ -79,21 +80,21 @@ function updateCartUI() {
     const list = document.getElementById('cartList');
     const emptyState = document.getElementById('emptyCartState');
     const badge = document.getElementById('mobileCartCount');
-    
+
     // Mobile Badge
-    if(badge) badge.innerText = cart.reduce((acc, item) => acc + item.qty, 0);
+    if (badge) badge.innerText = cart.reduce((acc, item) => acc + item.qty, 0);
 
     // Empty State Toggle
     if (cart.length === 0) {
-        if(list) list.style.display = 'none';
-        if(emptyState) emptyState.style.display = 'flex';
+        if (list) list.style.display = 'none';
+        if (emptyState) emptyState.style.display = 'flex';
         updateTotals();
         return;
     }
 
-    if(list) list.style.display = 'block';
-    if(emptyState) emptyState.style.display = 'none';
-    if(list) list.innerHTML = '';
+    if (list) list.style.display = 'block';
+    if (emptyState) emptyState.style.display = 'none';
+    if (list) list.innerHTML = '';
 
     cart.forEach((item, index) => {
         const row = document.createElement('div');
@@ -109,7 +110,7 @@ function updateCartUI() {
                 <div class="qty-btn" onclick="changeQty(${index}, 1)">+</div>
             </div>
         `;
-        if(list) list.appendChild(row);
+        if (list) list.appendChild(row);
     });
 
     updateTotals();
@@ -124,7 +125,7 @@ function changeQty(index, delta) {
 }
 
 function clearCart() {
-    if(cart.length > 0 && confirm("Clear current order?")) {
+    if (cart.length > 0 && confirm("Clear current order?")) {
         cart = [];
         updateCartUI();
     }
@@ -133,17 +134,17 @@ function clearCart() {
 // --- STATE & CALCULATIONS ---
 function setMode(mode) {
     state.mode = mode;
-    
+
     document.getElementById('btnModeSale').classList.toggle('active', mode === 'sale');
     document.getElementById('btnModeQuote').classList.toggle('active', mode === 'quote');
-    
+
     const statusRow = document.getElementById('statusRow');
-    if(statusRow) statusRow.style.display = (mode === 'quote') ? 'flex' : 'none';
-    
+    if (statusRow) statusRow.style.display = (mode === 'quote') ? 'flex' : 'none';
+
     document.getElementById('txnTitle').innerText = (mode === 'sale') ? 'Current Sale' : 'New Quote';
-    
+
     const btnText = document.getElementById('completeBtnText');
-    if(btnText) btnText.innerText = (mode === 'sale') ? 'Complete Sale' : 'Save Quote';
+    if (btnText) btnText.innerText = (mode === 'sale') ? 'Complete Sale' : 'Save Quote';
 }
 
 function setTax(rate) {
@@ -157,10 +158,10 @@ function setMethod(method) {
     state.paymentMethod = method;
     ['Cash', 'Card', 'Etransfer'].forEach(m => {
         const btn = document.getElementById(`btnMethod${m}`);
-        if(btn) btn.classList.remove('active');
+        if (btn) btn.classList.remove('active');
     });
     const activeBtn = document.getElementById(`btnMethod${method.charAt(0).toUpperCase() + method.slice(1)}`);
-    if(activeBtn) activeBtn.classList.add('active');
+    if (activeBtn) activeBtn.classList.add('active');
 }
 
 function setStatus(status) {
@@ -177,7 +178,7 @@ function updateTotals() {
     document.getElementById('subTotal').innerText = `$${subTotal.toFixed(2)}`;
     document.getElementById('taxAmount').innerText = `$${tax.toFixed(2)}`;
     document.getElementById('finalTotal').innerText = `$${total.toFixed(2)}`;
-    
+
     return {
         subtotal: parseFloat(subTotal.toFixed(2)),
         tax: parseFloat(tax.toFixed(2)),
@@ -190,12 +191,12 @@ async function completeTransaction() {
     console.log("Button Clicked..."); // DEBUG LOG
 
     if (cart.length === 0) return alert("Please add items to the cart first.");
-    
+
     // 1. UI Feedback (So you know it's working)
     const btnTextSpan = document.getElementById('completeBtnText');
     const originalText = btnTextSpan ? btnTextSpan.innerText : "Complete";
-    if(btnTextSpan) btnTextSpan.innerText = "Processing...";
-    
+    if (btnTextSpan) btnTextSpan.innerText = "Processing...";
+
     // 2. Gather Data
     const customerName = document.getElementById('customerName').value || 'Guest';
     const customerPhone = document.getElementById('customerPhone').value || 'N/A';
@@ -231,13 +232,13 @@ async function completeTransaction() {
         } else {
             // FAILURE: Server rejected it (Likely Low Stock)
             alert("Transaction Failed: " + (result.error || "Unknown error"));
-            if(btnTextSpan) btnTextSpan.innerText = originalText;
+            if (btnTextSpan) btnTextSpan.innerText = originalText;
         }
     } catch (err) {
         // NETWORK ERROR: Server is down
         console.error("Network Error:", err);
         alert("Cannot connect to server.\n\nMake sure you are running 'node index.js' in your terminal.");
-        if(btnTextSpan) btnTextSpan.innerText = originalText;
+        if (btnTextSpan) btnTextSpan.innerText = originalText;
     }
 }
 
@@ -247,10 +248,10 @@ function goToCartStep() {
     const phone = document.getElementById('customerPhone').value || 'No phone';
     document.getElementById('summaryName').innerText = name;
     document.getElementById('summaryPhone').innerText = phone;
-    
+
     document.getElementById('customerStep').classList.remove('active');
     document.getElementById('cartStep').classList.add('active');
-    if(window.innerWidth <= 900) switchMobileTab('cart');
+    if (window.innerWidth <= 900) switchMobileTab('cart');
 }
 
 function goToCustomerStep() {
@@ -261,7 +262,7 @@ function goToCustomerStep() {
 function switchMobileTab(tab) {
     const btns = document.querySelectorAll('.tab-btn');
     btns.forEach(b => b.classList.remove('active'));
-    
+
     if (tab === 'cart') {
         document.body.classList.add('mobile-view-cart');
         btns[1].classList.add('active');
@@ -273,7 +274,7 @@ function switchMobileTab(tab) {
 
 function setupSearch() {
     const searchInput = document.getElementById('productSearch');
-    if(searchInput) {
+    if (searchInput) {
         searchInput.addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
             const filtered = products.filter(p => p.name.toLowerCase().includes(term));
@@ -284,7 +285,7 @@ function setupSearch() {
 
 function filterCategory(cat) {
     document.querySelectorAll('.cat-pill').forEach(btn => {
-        if(btn.innerText === cat) btn.classList.add('active');
+        if (btn.innerText === cat) btn.classList.add('active');
         else btn.classList.remove('active');
     });
 
