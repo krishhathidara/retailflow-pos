@@ -2,19 +2,19 @@ const API_URL = 'http://localhost:5000/api';
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    // 1. Detect if we are in "Signup Mode" based on URL
+    // 1. Detect "Signup Mode" from URL (e.g., login.html?mode=signup)
     const params = new URLSearchParams(window.location.search);
     if (params.get('mode') === 'signup') {
         toggleToSignup();
     }
 
-    // 2. Handle Form Submit
+    // 2. Handle Form Submit (Login/Register)
     const authForm = document.getElementById('authForm');
     if (authForm) {
         authForm.addEventListener('submit', handleAuth);
     }
 
-    // 3. Handle Toggle Link Click
+    // 3. Handle the Toggle Link (Sign In <-> Sign Up)
     const toggleLink = document.getElementById('toggleAuth');
     if (toggleLink) {
         toggleLink.addEventListener('click', (e) => {
@@ -43,6 +43,7 @@ async function handleAuth(e) {
     btn.style.opacity = '0.7';
 
     try {
+        // NOTE: This will only work if your Node server is running locally
         const res = await fetch(`${API_URL}${endpoint}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -53,7 +54,6 @@ async function handleAuth(e) {
 
         if (res.ok) {
             if (isSignup) {
-                // If signup success, auto-login or ask to login
                 alert("Account created! Please sign in.");
                 toggleToLogin();
             } else {
@@ -66,7 +66,7 @@ async function handleAuth(e) {
         }
     } catch (err) {
         console.error(err);
-        alert("Cannot connect to server. Is 'node index.js' running?");
+        alert("Cannot connect to server. Make sure 'node index.js' is running in your terminal.");
     } finally {
         btn.innerText = originalText;
         btn.disabled = false;
@@ -81,7 +81,7 @@ function toggleToSignup() {
     document.getElementById('switchLabel').innerText = 'Already have an account?';
     document.getElementById('toggleAuth').innerText = 'Sign In';
     
-    // Update URL
+    // Update URL without reloading
     const url = new URL(window.location);
     url.searchParams.set('mode', 'signup');
     window.history.pushState({}, '', url);
@@ -94,7 +94,7 @@ function toggleToLogin() {
     document.getElementById('switchLabel').innerText = 'Don\'t have an account?';
     document.getElementById('toggleAuth').innerText = 'Sign Up';
     
-    // Update URL
+    // Update URL without reloading
     const url = new URL(window.location);
     url.searchParams.delete('mode');
     window.history.pushState({}, '', url);
