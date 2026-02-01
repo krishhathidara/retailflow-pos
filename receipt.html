@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,64 +12,158 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            font-family: 'Courier New', Courier, monospace; /* Classic Receipt Font */
+            font-family: 'Courier New', Courier, monospace;
+            /* Classic Receipt Font */
             margin: 0;
         }
 
         .receipt-container {
             background: white;
-            width: 380px; /* Standard Receipt Width */
+            width: 380px;
+            /* Standard Receipt Width */
             padding: 40px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             text-align: center;
         }
 
         /* Typography */
-        h1 { font-size: 1.5rem; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 1px; }
-        p { margin: 5px 0; font-size: 0.9rem; color: #333; }
-        
+        h1 {
+            font-size: 1.5rem;
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        p {
+            margin: 5px 0;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
         .divider {
             border-top: 1px dashed #333;
             margin: 15px 0;
         }
 
         /* Table */
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
-        th { text-align: left; border-bottom: 1px dashed #333; padding-bottom: 5px; }
-        td { padding: 8px 0; vertical-align: top; }
-        .text-right { text-align: right; }
-        .qty-col { text-align: center; width: 40px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        th {
+            text-align: left;
+            border-bottom: 1px dashed #333;
+            padding-bottom: 5px;
+        }
+
+        td {
+            padding: 8px 0;
+            vertical-align: top;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .qty-col {
+            text-align: center;
+            width: 40px;
+        }
 
         /* Totals Area */
-        .totals { margin-top: 15px; }
-        .totals-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.9rem; }
-        .grand-total { font-weight: bold; font-size: 1.2rem; border-top: 1px dashed #333; border-bottom: 1px dashed #333; padding: 10px 0; margin-top: 10px; }
+        .totals {
+            margin-top: 15px;
+        }
+
+        .totals-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .grand-total {
+            font-weight: bold;
+            font-size: 1.2rem;
+            border-top: 1px dashed #333;
+            border-bottom: 1px dashed #333;
+            padding: 10px 0;
+            margin-top: 10px;
+        }
 
         /* Payment Info */
-        .payment-info { background: #f3f4f6; padding: 10px; margin-top: 15px; font-weight: bold; font-size: 0.9rem; text-transform: uppercase; }
+        .payment-info {
+            background: #f3f4f6;
+            padding: 10px;
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
 
         /* Footer */
-        .footer { margin-top: 20px; font-size: 0.8rem; color: #666; line-height: 1.4; }
+        .footer {
+            margin-top: 20px;
+            font-size: 0.8rem;
+            color: #666;
+            line-height: 1.4;
+        }
 
         /* Actions (Hidden when printing) */
         .actions {
-            position: fixed; bottom: 20px; right: 20px; display: flex; gap: 10px;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
         }
+
         .btn {
-            padding: 12px 24px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-family: sans-serif;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: 0.2s;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: sans-serif;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: 0.2s;
         }
-        .btn-primary { background: #10b981; color: white; }
-        .btn-secondary { background: #6b7280; color: white; }
-        .btn:hover { transform: translateY(-2px); }
+
+        .btn-primary {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
 
         @media print {
-            body { background: white; }
-            .receipt-container { box-shadow: none; width: 100%; padding: 0; }
-            .actions { display: none; }
+            body {
+                background: white;
+            }
+
+            .receipt-container {
+                box-shadow: none;
+                width: 100%;
+                padding: 0;
+            }
+
+            .actions {
+                display: none;
+            }
         }
     </style>
 </head>
+
 <body>
 
     <div class="receipt-container">
@@ -98,7 +193,7 @@
                 </tr>
             </thead>
             <tbody id="rItems">
-                </tbody>
+            </tbody>
         </table>
 
         <div class="divider"></div>
@@ -115,6 +210,14 @@
             <div class="totals-row grand-total">
                 <span>TOTAL:</span>
                 <span id="rTotal">$0.00</span>
+            </div>
+            <div id="rPaidRow" class="totals-row" style="margin-top:10px;">
+                <span>Amount Paid:</span>
+                <span id="rPaid">$0.00</span>
+            </div>
+            <div id="rBalanceRow" class="totals-row" style="font-weight:bold; color:#d32f2f;">
+                <span>BALANCE DUE:</span>
+                <span id="rBalance">$0.00</span>
             </div>
         </div>
 
@@ -138,19 +241,19 @@
         document.addEventListener('DOMContentLoaded', () => {
             // 1. Load Settings
             const settings = JSON.parse(localStorage.getItem('swiftPosSettings')) || {};
-            
+
             document.getElementById('rStoreName').innerText = settings.storeName || "My Store";
-            
+
             // Toggle Address
-            if(settings.showAddress === false) document.getElementById('rStoreAddress').style.display = 'none';
+            if (settings.showAddress === false) document.getElementById('rStoreAddress').style.display = 'none';
             else document.getElementById('rStoreAddress').innerText = settings.storeAddress || "";
 
             // Toggle Phone
-            if(settings.showPhone === false) document.getElementById('rStorePhone').style.display = 'none';
+            if (settings.showPhone === false) document.getElementById('rStorePhone').style.display = 'none';
             else document.getElementById('rStorePhone').innerText = settings.storePhone || "";
 
             // Toggle Description
-            if(settings.receiptDesc) document.getElementById('rDesc').innerText = settings.receiptDesc;
+            if (settings.receiptDesc) document.getElementById('rDesc').innerText = settings.receiptDesc;
 
             // 2. Load Sale Data (Passed via localStorage from sales.js)
             const sale = JSON.parse(localStorage.getItem('lastSale'));
@@ -159,9 +262,9 @@
             document.getElementById('rId').innerText = "INV-" + Math.floor(Math.random() * 1000000);
             document.getElementById('rDate').innerText = new Date().toLocaleString();
             document.getElementById('rCustName').innerText = sale.customer.name;
-            
+
             // Hide customer phone if N/A or guest
-            if(sale.customer.phone === 'N/A') {
+            if (sale.customer.phone === 'N/A') {
                 document.getElementById('rCustPhone').style.display = 'none';
             } else {
                 document.getElementById('rCustPhone').innerText = sale.customer.phone;
@@ -183,10 +286,24 @@
             document.getElementById('rSubtotal').innerText = "$" + sale.totals.subtotal.toFixed(2);
             document.getElementById('rTax').innerText = "$" + sale.totals.tax.toFixed(2);
             document.getElementById('rTotal').innerText = "$" + sale.totals.total.toFixed(2);
-            
+
+            // Handle Balance
+            const paid = sale.amountPaid || sale.totals.total;
+            const balance = sale.totals.total - paid;
+
+            document.getElementById('rPaid').innerText = "$" + paid.toFixed(2);
+            if (balance > 0.01) {
+                document.getElementById('rBalanceRow').style.display = 'flex';
+                document.getElementById('rBalance').innerText = "$" + balance.toFixed(2);
+            } else {
+                document.getElementById('rBalanceRow').style.display = 'none';
+                document.getElementById('rPaidRow').style.display = 'none';
+            }
+
             document.getElementById('rMethod').innerText = sale.payment.method.toUpperCase();
             document.getElementById('rStatus').innerText = sale.payment.status.toUpperCase();
         });
     </script>
 </body>
+
 </html>

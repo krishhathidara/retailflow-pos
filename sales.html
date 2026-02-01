@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sales Terminal - SwiftPOS</title>
-    <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/dashboard.css">
-    <link rel="stylesheet" href="css/sales.css">
+    <link rel="stylesheet" href="css/base.css?v=2.1">
+    <link rel="stylesheet" href="css/dashboard.css?v=2.1">
+    <link rel="stylesheet" href="css/sales.css?v=2.1">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
 </head>
+
 <body>
 
     <div class="app-layout">
@@ -44,13 +46,14 @@
         </aside>
 
         <main class="main-wrapper sales-wrapper">
-            
+
             <div class="mobile-tabs">
                 <button class="tab-btn active" onclick="switchMobileTab('products')">
                     <span class="material-icons-round">inventory_2</span> Products
                 </button>
                 <button class="tab-btn" onclick="switchMobileTab('cart')">
-                    <span class="material-icons-round">shopping_cart</span> Cart <span id="mobileCartCount" class="badge">0</span>
+                    <span class="material-icons-round">shopping_cart</span> Cart <span id="mobileCartCount"
+                        class="badge">0</span>
                 </button>
             </div>
 
@@ -83,10 +86,10 @@
                                 <input type="tel" id="customerPhone" placeholder="(555) 123-4567">
                             </div>
                         </div>
-                        <button class="btn btn-primary w-100 mt-4" onclick="goToCartStep()" 
-    style="background: #10b981 !important; color: white !important; border: none !important; padding: 14px !important; border-radius: 12px !important; font-weight: 700 !important; font-size: 1rem !important; cursor: pointer !important; display: flex !important; align-items: center !important; justify-content: center !important; gap: 8px !important; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3) !important; width: 100% !important; margin-top: 24px !important; transition: 0.2s !important;">
-    Continue to Items <span class="material-icons-round">arrow_forward</span>
-</button>
+                        <button class="btn btn-primary w-100 mt-4" onclick="goToCartStep()"
+                            style="background: #10b981 !important; color: white !important; border: none !important; padding: 14px !important; border-radius: 12px !important; font-weight: 700 !important; font-size: 1rem !important; cursor: pointer !important; display: flex !important; align-items: center !important; justify-content: center !important; gap: 8px !important; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3) !important; width: 100% !important; margin-top: 24px !important; transition: 0.2s !important;">
+                            Continue to Items <span class="material-icons-round">arrow_forward</span>
+                        </button>
                     </div>
 
                     <div id="cartStep" class="step-content">
@@ -120,16 +123,31 @@
                             <div class="control-row" id="statusRow" style="display:none;">
                                 <span class="label">Payment Status</span>
                                 <div class="toggle-group status-group">
-                                    <button class="toggle-btn active status-paid" id="btnStatusPaid" onclick="setStatus('paid')">
+                                    <button class="toggle-btn active status-paid" id="btnStatusPaid"
+                                        onclick="setStatus('paid')">
                                         <span class="material-icons-round">check_circle</span> Paid
                                     </button>
-                                    <button class="toggle-btn status-unpaid" id="btnStatusUnpaid" onclick="setStatus('unpaid')">
+                                    <button class="toggle-btn status-unpaid" id="btnStatusUnpaid"
+                                        onclick="setStatus('unpaid')">
                                         <span class="material-icons-round">schedule</span> Unpaid
                                     </button>
                                 </div>
                             </div>
 
                             <div class="payment-section">
+                                <div
+                                    style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #f3f4f6; padding-bottom:10px;">
+                                    <span class="label" style="margin-bottom:0;">Payment Type</span>
+                                    <div class="toggle-group"
+                                        style="background:#f3f4f6; padding:4px; border-radius:10px; display:flex;">
+                                        <button type="button" id="modeFull" class="active"
+                                            onclick="setDepositMode(false)"
+                                            style="padding:6px 15px; border:none; border-radius:7px; font-weight:700; font-size:0.8rem; cursor:pointer; background:white; box-shadow:0 2px 4px rgba(0,0,0,0.05);">Full
+                                            Pay</button>
+                                        <button type="button" id="modeDeposit" onclick="setDepositMode(true)"
+                                            style="padding:6px 15px; border:none; border-radius:7px; font-weight:700; font-size:0.8rem; cursor:pointer; background:transparent; color:#666;">Deposit</button>
+                                    </div>
+                                </div>
                                 <span class="label">Payment Method</span>
                                 <div class="methods-grid">
                                     <button class="method-btn active" id="btnMethodCash" onclick="setMethod('cash')">
@@ -144,24 +162,41 @@
                                 </div>
                             </div>
 
+                            <div id="depositSection" class="payment-section"
+                                style="margin-top:10px; border-top:1px dashed #eee; padding-top:10px; display:none;">
+                                <div
+                                    style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                                    <span class="label" style="margin-bottom:0;">Amount Paid</span>
+                                    <div class="input-icon" style="width:120px;">
+                                        <span
+                                            style="position:absolute; left:10px; color:#666; font-weight:600;">$</span>
+                                        <input type="number" id="amtPaid" step="0.01" oninput="updateTotals()"
+                                            style="padding-left:25px; height:38px; border-radius:8px; font-weight:700;">
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="totals">
                                 <div class="row"><span>Subtotal</span> <span id="subTotal">$0.00</span></div>
                                 <div class="row"><span>Tax</span> <span id="taxAmount">$0.00</span></div>
                                 <div class="row total"><span>Total</span> <span id="finalTotal">$0.00</span></div>
+                                <div id="balanceRow" class="row" style="color:#ef4444; font-weight:600; display:none;">
+                                    <span>Balance Due</span> <span id="balanceDue">$0.00</span>
+                                </div>
                             </div>
 
                             <div class="actions-row" style="display:flex; gap:12px; margin-top:20px; width: 100%;">
-    <button type="button" onclick="clearCart()" 
-        style="background: white !important; border: 1px solid #e5e7eb !important; color: #ef4444 !important; width: 50px !important; height: 50px !important; border-radius: 12px !important; cursor: pointer !important; display: flex !important; align-items: center !important; justify-content: center !important; box-shadow: 0 2px 5px rgba(0,0,0,0.05) !important;">
-        <span class="material-icons-round" style="font-size: 1.5rem;">delete</span>
-    </button>
-    
-    <button type="button" onclick="completeTransaction()" 
-        style="flex: 1 !important; background: #10b981 !important; color: white !important; border: none !important; height: 50px !important; border-radius: 12px !important; font-weight: 700 !important; font-size: 1.1rem !important; cursor: pointer !important; display: flex !important; align-items: center !important; justify-content: center !important; gap: 10px !important; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4) !important;">
-        <span class="material-icons-round">check_circle</span> 
-        <span id="completeBtnText">Complete Sale</span>
-    </button>
-</div>
+                                <button type="button" onclick="clearCart()"
+                                    style="background: white !important; border: 1px solid #e5e7eb !important; color: #ef4444 !important; width: 50px !important; height: 50px !important; border-radius: 12px !important; cursor: pointer !important; display: flex !important; align-items: center !important; justify-content: center !important; box-shadow: 0 2px 5px rgba(0,0,0,0.05) !important;">
+                                    <span class="material-icons-round" style="font-size: 1.5rem;">delete</span>
+                                </button>
+
+                                <button type="button" onclick="completeTransaction()"
+                                    style="flex: 1 !important; background: #10b981 !important; color: white !important; border: none !important; height: 50px !important; border-radius: 12px !important; font-weight: 700 !important; font-size: 1.1rem !important; cursor: pointer !important; display: flex !important; align-items: center !important; justify-content: center !important; gap: 10px !important; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4) !important;">
+                                    <span class="material-icons-round">check_circle</span>
+                                    <span id="completeBtnText">Complete Sale</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -191,28 +226,135 @@
         </main>
 
         <nav class="mobile-nav">
-    <a href="dashboard.html" class="m-nav-item">
-        <span class="material-icons-round">dashboard</span>
-    </a>
+            <a href="dashboard.html" class="m-nav-item">
+                <span class="material-icons-round">dashboard</span>
+            </a>
 
-    <a href="sales.html" class="m-nav-item active">
-        <span class="material-icons-round">receipt_long</span>
-    </a>
+            <a href="sales.html" class="m-nav-item active">
+                <span class="material-icons-round">receipt_long</span>
+            </a>
 
-    <a href="transactions.html" class="m-nav-item">
-        <span class="material-icons-round">receipt</span>
-    </a>
+            <a href="transactions.html" class="m-nav-item">
+                <span class="material-icons-round">receipt</span>
+            </a>
 
-    <a href="inventory.html" class="m-nav-item">
-        <span class="material-icons-round">inventory_2</span>
-    </a>
+            <a href="inventory.html" class="m-nav-item">
+                <span class="material-icons-round">inventory_2</span>
+            </a>
 
-    <a href="settings.html" class="m-nav-item">
-        <span class="material-icons-round">settings</span>
-    </a>
-</nav>
+            <a href="settings.html" class="m-nav-item">
+                <span class="material-icons-round">settings</span>
+            </a>
+        </nav>
     </div>
 
-    <script src="js/sales.js"></script>
+    <div class="modal-overlay" id="variantModal">
+        <div class="modal fade-in-up" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2>Select Option</h2>
+                <button class="close-btn" onclick="closeVariantModal()"><span
+                        class="material-icons-round">close</span></button>
+            </div>
+            <div class="modal-body">
+                <p id="vmProductName"
+                    style="margin-bottom:15px; font-weight:600; font-size:1.1rem; color:var(--primary-dark);">Product
+                    Name</p>
+
+                <!-- Search Input -->
+                <div class="search-bar" style="border:1px solid #ddd; background:white; margin-bottom:10px;">
+                    <span class="material-icons-round" style="color:#aaa">search</span>
+                    <input type="text" id="variantSearch" placeholder="Search IMEI or Color...">
+                </div>
+
+                <div id="variantOptions" class="variant-grid">
+                    <!-- Options go here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    </div>
+
+    <!-- Staff Auth Modal -->
+    <div class="modal-overlay" id="staffAuthModal">
+        <div class="modal fade-in-up" style="max-width: 420px; text-align: center;">
+            <div class="modal-header" style="justify-content: center; position: relative; padding: 30px 24px 20px;">
+                <div
+                    style="width: 50px; height: 50px; background: #f0fdf4; color: #10b981; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+                    <span class="material-icons-round" style="font-size: 28px;">lock_person</span>
+                </div>
+                <h2 style="font-size: 1.4rem; font-weight: 800; width: 100%;">Staff Security Check</h2>
+                <button class="close-btn" onclick="closeAuthModal()"
+                    style="position: absolute; top: 15px; right: 15px;">
+                    <span class="material-icons-round">close</span>
+                </button>
+            </div>
+            <form id="authForm" onsubmit="handleAuthSubmit(event)">
+                <div class="modal-body" style="padding: 0 30px 30px;">
+                    <p class="text-muted" style="margin-bottom: 25px; font-size: 0.95rem;">Enter your credentials to
+                        authorize this transaction.</p>
+                    <div class="form-group" style="text-align: left;">
+                        <label>User ID</label>
+                        <input type="text" id="authUserId" required placeholder="Staff ID"
+                            style="background: #f9fafb; font-weight: 600;">
+                    </div>
+                    <div class="form-group" style="text-align: left;">
+                        <label>PIN</label>
+                        <div style="position: relative;">
+                            <input type="password" id="authPin" required maxlength="10" placeholder="••••"
+                                style="background: #f9fafb; text-align: center; letter-spacing: 12px; font-size: 1.8rem; font-weight: 800; padding: 10px;">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer"
+                    style="padding: 20px 30px 30px; border: none; flex-direction: column; gap: 12px;">
+                    <button type="submit" class="btn btn-primary w-100"
+                        style="padding: 16px; font-size: 1rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);">Verify
+                        & Complete Sale</button>
+                    <button type="button" class="btn btn-secondary w-100" onclick="closeAuthModal()"
+                        style="padding: 14px; background: transparent; color: #6b7280; font-weight: 500;">Cancel
+                        Transaction</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="receiptModal">
+        <div class="modal fade-in-up" style="max-width: 400px; text-align: center; padding: 30px;">
+            <div
+                style="width: 60px; height: 60px; background: #dcfce7; color: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                <span class="material-icons-round" style="font-size: 30px;">check_circle</span>
+            </div>
+            <h2 style="margin-bottom: 5px;">Transaction Complete</h2>
+            <p class="text-muted" style="margin-bottom: 25px;">Receipt information below</p>
+
+            <div
+                style="background: #f9fafb; padding: 20px; border-radius: 12px; margin-bottom: 25px; text-align: left;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span class="text-muted">Total Amount</span>
+                    <strong id="rcptTotal"></strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span class="text-muted">Paid</span>
+                    <strong id="rcptPaid" style="color: #059669;"></strong>
+                </div>
+                <div id="rcptBalanceRow"
+                    style="display: flex; justify-content: space-between; border-top: 1px dashed #ddd; padding-top: 10px; margin-top: 10px;">
+                    <span style="font-weight: 600;">Balance Due</span>
+                    <strong id="rcptBalance" style="color: #ef4444;"></strong>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-secondary w-100" onclick="printReceipt()"
+                    style="background: #6b7280 !important; color: white !important;">Print</button>
+                <button class="btn btn-primary w-100" onclick="closeReceipt()"
+                    style="background: #10b981 !important;">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/sales.js?v=2.1"></script>
 </body>
+
 </html>

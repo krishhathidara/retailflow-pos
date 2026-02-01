@@ -1,5 +1,6 @@
-// Use NEXT_PUBLIC_API_URL for frontend
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://retailflow-pos.vercel.app/api'; // Default to production URL if not available
+// js/sales.js - VERSION 2.0 (Price Fix)
+console.log("Sales JS v2.0 Loaded");
+const API_URL = 'http://localhost:5000/api'; // Connects to local server
 
 let products = [];
 let cart = [];
@@ -10,6 +11,8 @@ let state = {
     paymentMethod: 'cash',
     quoteStatus: 'paid'
 };
+
+let authenticatedStaff = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     fetchProducts();
@@ -40,6 +43,9 @@ function renderProducts(items) {
     const grid = document.getElementById('productGrid');
     grid.innerHTML = '';
 
+    console.log("Rendering items:", items.length);
+    console.table(items.map(i => ({ name: i.name, price: i.price, variants: i.variants?.length || 0 })));
+
     if (!items || items.length === 0) {
         grid.innerHTML = '<p style="text-align:center; width:100%; color:#999; margin-top:40px;">No products found</p>';
         return;
@@ -49,6 +55,24 @@ function renderProducts(items) {
         const card = document.createElement('div');
         card.className = 'product-card';
         card.onclick = () => addToCart(product);
+
+        // ROBUST PRICE CALCULATION
+        let baseVal = parseFloat(product.price);
+        let displayPrice = isNaN(baseVal) ? 0 : baseVal;
+
+        // If price is 0 and we have variants, find the minimum variant price
+        if (displayPrice === 0 && product.variants && product.variants.length > 0) {
+            console.log(`Checking variants for ${product.name}...`);
+            const variantPrices = product.variants
+                .map(v => parseFloat(v.price))
+                .filter(p => !isNaN(p) && p > 0);
+
+            if (variantPrices.length > 0) {
+                displayPrice = Math.min(...variantPrices);
+                console.log(`Found min price: ${displayPrice}`);
+            }
+        }
+
         card.innerHTML = `
             <div class="p-image">
                 <span class="material-icons-round">inventory_2</span>
@@ -56,9 +80,12 @@ function renderProducts(items) {
             <div class="p-info">
                 <div class="p-title">${product.name}</div>
                 <div class="p-meta">
-                    <span class="p-price">$${product.price.toFixed(2)}</span>
+                    <span class="p-price">$${displayPrice.toFixed(2)}</span>
                     <span class="p-cat">${product.category || 'Item'}</span>
                 </div>
+                ${product.variants && product.variants.length > 0
+                ? `<div style="margin-top:4px; font-size:0.75rem; color:#059669; font-weight:600; background:#ecfdf5; padding:2px 6px; border-radius:4px; display:inline-block;">${product.variants.length} Options</div>`
+                : ''}
             </div>
         `;
         grid.appendChild(card);
@@ -66,15 +93,134 @@ function renderProducts(items) {
 }
 
 // --- CART LOGIC ---
+
 function addToCart(product) {
-    const existing = cart.find(item => item._id === product._id);
+    // 1. Check for Variants
+    if (product.variants && product.variants.length > 0) {
+        openVariantModal(product);
+        return;
+    }
+
+    // 2. Standard Product Logic
+    if (product.stock <= 0) {
+        alert("This item is out of stock!");
+        return;
+    }
+
+    const existing = cart.find(item => item._id === product._id && !item.variant);
     if (existing) {
+        if (existing.qty + 1 > product.stock) {
+            alert(`Only ${product.stock} items available in stock.`);
+            return;
+        }
         existing.qty++;
     } else {
         cart.push({ ...product, qty: 1 });
     }
     updateCartUI();
 }
+
+function addVariantToCart(product, variant) {
+    closeVariantModal();
+
+    if (variant.stock <= 0) {
+        alert("This variant is out of stock!");
+        return;
+    }
+
+    const existing = cart.find(item => item._id === product._id && item.variant && item.variant.imei === variant.imei && item.variant.color === variant.color);
+
+    if (existing) {
+        if (existing.qty + 1 > variant.stock) {
+            alert(`Only ${variant.stock} items available in stock for this variant.`);
+            return;
+        }
+        existing.qty++;
+    } else {
+        // Create Cart Item with Variant Info
+        cart.push({
+            ...product, // Gets base info
+            _id: product._id,
+            name: `${product.name} (${variant.color || ''} ${variant.imei || ''})`.trim(),
+            price: variant.price || product.price, // USE VARIANT PRICE
+            qty: 1,
+            variant: variant,
+            stock: variant.stock
+        });
+    }
+    updateCartUI();
+}
+
+// --- VARIANT MODAL ---
+function openVariantModal(product) {
+    console.log("OPENING VARIANT MODAL FOR:", product);
+    const modal = document.getElementById('variantModal');
+    if (!modal) {
+        console.error("ERROR: Modal element #variantModal not found in DOM");
+        return;
+    }
+
+    const list = document.getElementById('variantOptions');
+    document.getElementById('vmProductName').innerText = `Select Option for ${product.name}`;
+    list.innerHTML = '';
+
+    // Clear search
+    const searchInput = document.getElementById('variantSearch');
+    if (searchInput) searchInput.value = '';
+
+    function renderOptions(filterTerm = '') {
+        list.innerHTML = '';
+        const term = filterTerm.toLowerCase();
+
+        console.log("Rendering variants:", product.variants);
+        product.variants.forEach(v => {
+            // Filter Logic
+            const match = (v.color || '').toLowerCase().includes(term) ||
+                (v.imei || '').toLowerCase().includes(term) ||
+                (v.storage || '').toLowerCase().includes(term);
+            if (!match) return;
+
+            const div = document.createElement('div');
+            div.className = `variant-option ${v.stock <= 0 ? 'out-of-stock' : ''}`;
+            div.innerHTML = `
+                <div class="v-info">
+                    <span class="v-color">
+                        ${v.color || ''} 
+                        ${v.storage ? `<span style="background:#f3f4f6; color:#333; padding:2px 6px; border-radius:4px; font-size:0.75em; margin-left:4px;">${v.storage}</span>` : ''}
+                    </span> 
+                    <span class="v-imei">${v.imei || 'No IMEI'}</span>
+                    ${v.price ? `<span style="font-size:0.75rem; color:#666; margin-top:2px;">$${v.price.toFixed(2)}</span>` : ''}
+                </div>
+                <span class="v-stock">
+                    ${v.stock > 0 ? 'Available' : 'Sold Out'}
+                </span>
+            `;
+            div.onclick = () => {
+                if (v.stock > 0) addVariantToCart(product, v);
+            };
+            list.appendChild(div);
+        });
+
+        if (list.children.length === 0) {
+            list.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:20px; color:#aaa;">No matches found</div>`;
+        }
+    }
+
+    renderOptions();
+
+    // Attach Search Listener
+    if (searchInput) searchInput.oninput = (e) => renderOptions(e.target.value);
+
+    console.log("Adding 'active' class to modal");
+    modal.classList.add('active');
+    console.log("Modal classes:", modal.className);
+}
+
+function closeVariantModal() {
+    document.getElementById('variantModal').classList.remove('active');
+}
+
+
 
 function updateCartUI() {
     const list = document.getElementById('cartList');
@@ -113,16 +259,25 @@ function updateCartUI() {
         if (list) list.appendChild(row);
     });
 
-    updateTotals();
+    updateTotals(true);
 }
 
+
 function changeQty(index, delta) {
-    cart[index].qty += delta;
-    if (cart[index].qty <= 0) {
+    const item = cart[index];
+
+    if (delta > 0 && item.qty + delta > item.stock) {
+        alert(`Cannot add more. Only ${item.stock} in stock.`);
+        return;
+    }
+
+    item.qty += delta;
+    if (item.qty <= 0) {
         cart.splice(index, 1);
     }
     updateCartUI();
 }
+
 
 function clearCart() {
     if (cart.length > 0 && confirm("Clear current order?")) {
@@ -170,7 +325,39 @@ function setStatus(status) {
     document.getElementById('btnStatusUnpaid').classList.toggle('active', status === 'unpaid');
 }
 
-function updateTotals() {
+function setDepositMode(isDeposit) {
+    const section = document.getElementById('depositSection');
+    const btnFull = document.getElementById('modeFull');
+    const btnDeposit = document.getElementById('modeDeposit');
+
+    if (isDeposit) {
+        section.style.display = 'block';
+        btnDeposit.style.background = 'white';
+        btnDeposit.style.color = '#333';
+        btnDeposit.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
+        btnFull.style.background = 'transparent';
+        btnFull.style.color = '#666';
+        btnFull.style.boxShadow = 'none';
+
+        // Focus and select amount for quick entry
+        const input = document.getElementById('amtPaid');
+        input.focus();
+        input.select();
+    } else {
+        section.style.display = 'none';
+        btnFull.style.background = 'white';
+        btnFull.style.color = '#333';
+        btnFull.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
+        btnDeposit.style.background = 'transparent';
+        btnDeposit.style.color = '#666';
+        btnDeposit.style.boxShadow = 'none';
+
+        // Reset to full total
+        updateTotals(true);
+    }
+}
+
+function updateTotals(isNewItem = false) {
     const subTotal = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
     const tax = subTotal * state.taxRate;
     const total = subTotal + tax;
@@ -179,10 +366,32 @@ function updateTotals() {
     document.getElementById('taxAmount').innerText = `$${tax.toFixed(2)}`;
     document.getElementById('finalTotal').innerText = `$${total.toFixed(2)}`;
 
+    // Handle Amount Paid / Deposit
+    const amtPaidInput = document.getElementById('amtPaid');
+    if (isNewItem && amtPaidInput) {
+        amtPaidInput.value = total.toFixed(2);
+    }
+
+    const paid = parseFloat(amtPaidInput?.value) || 0;
+    const balance = total - paid;
+
+    const balanceRow = document.getElementById('balanceRow');
+    const balanceDue = document.getElementById('balanceDue');
+    if (balanceRow && balanceDue) {
+        if (balance > 0.01) {
+            balanceRow.style.display = 'flex';
+            balanceDue.innerText = `$${balance.toFixed(2)}`;
+        } else {
+            balanceRow.style.display = 'none';
+        }
+    }
+
     return {
         subtotal: parseFloat(subTotal.toFixed(2)),
         tax: parseFloat(tax.toFixed(2)),
-        total: parseFloat(total.toFixed(2))
+        total: parseFloat(total.toFixed(2)),
+        paid: paid,
+        balance: parseFloat(balance.toFixed(2))
     };
 }
 
@@ -191,6 +400,12 @@ async function completeTransaction() {
     console.log("Button Clicked..."); // DEBUG LOG
 
     if (cart.length === 0) return alert("Please add items to the cart first.");
+
+    // --- SECURITY CHECK ---
+    if (!authenticatedStaff) {
+        openAuthModal();
+        return;
+    }
 
     // 1. UI Feedback (So you know it's working)
     const btnTextSpan = document.getElementById('completeBtnText');
@@ -206,11 +421,13 @@ async function completeTransaction() {
         customer: { name: customerName, phone: customerPhone },
         items: cart,
         totals: totals,
-        payment: { 
-            method: state.paymentMethod, 
-            status: state.mode === 'sale' ? 'paid' : state.quoteStatus 
+        amountPaid: totals.paid,
+        payment: {
+            method: state.paymentMethod,
+            status: state.mode === 'sale' ? (totals.balance <= 0 ? 'paid' : 'partial') : state.quoteStatus
         },
-        type: state.mode
+        type: state.mode,
+        staff: authenticatedStaff
     };
 
     try {
@@ -225,10 +442,9 @@ async function completeTransaction() {
 
         // 4. Handle Response
         if (res.ok) {
-            // SUCCESS: Save data & Redirect
-            localStorage.setItem('lastSale', JSON.stringify(saleData));
-            console.log("Success! Redirecting to receipt...");
-            window.location.href = 'receipt.html'; 
+            // SUCCESS: Show Receipt Modal
+            localStorage.setItem('lastSale', JSON.stringify({ ...saleData, balance: totals.balance, date: new Date() }));
+            showReceipt(saleData, totals);
         } else {
             // FAILURE: Server rejected it (Likely Low Stock)
             alert("Transaction Failed: " + (result.error || "Unknown error"));
@@ -239,6 +455,46 @@ async function completeTransaction() {
         console.error("Network Error:", err);
         alert("Cannot connect to server.\n\nMake sure you are running 'node index.js' in your terminal.");
         if (btnTextSpan) btnTextSpan.innerText = originalText;
+    }
+}
+
+// --- STAFF AUTHENTICATION ---
+
+function openAuthModal() {
+    document.getElementById('staffAuthModal').classList.add('active');
+    document.getElementById('authForm').reset();
+    document.getElementById('authUserId').focus();
+}
+
+function closeAuthModal() {
+    document.getElementById('staffAuthModal').classList.remove('active');
+}
+
+async function handleAuthSubmit(event) {
+    event.preventDefault();
+
+    const userId = document.getElementById('authUserId').value;
+    const pin = document.getElementById('authPin').value;
+
+    try {
+        const res = await fetch(`${API_URL}/employees/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId, pin })
+        });
+
+        const result = await res.json();
+
+        if (res.ok) {
+            authenticatedStaff = { name: result.name, userId: result.userId };
+            closeAuthModal();
+            completeTransaction(); // Re-trigger with auth saved
+        } else {
+            alert(result.error || "Verification failed");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Security check failed. Please check your connection.");
     }
 }
 
@@ -291,4 +547,33 @@ function filterCategory(cat) {
 
     if (cat === 'All') renderProducts(products);
     else renderProducts(products.filter(p => p.category === cat));
+}
+function showReceipt(sale, totals) {
+    document.getElementById('rcptTotal').innerText = `$${totals.total.toFixed(2)}`;
+    document.getElementById('rcptPaid').innerText = `$${totals.paid.toFixed(2)}`;
+
+    const balanceRow = document.getElementById('rcptBalanceRow');
+    if (totals.balance > 0.01) {
+        balanceRow.style.display = 'flex';
+        document.getElementById('rcptBalance').innerText = `$${totals.balance.toFixed(2)}`;
+    } else {
+        balanceRow.style.display = 'none';
+    }
+
+    document.getElementById('receiptModal').classList.add('active');
+}
+
+function closeReceipt() {
+    document.getElementById('receiptModal').classList.remove('active');
+    authenticatedStaff = null; // Reset staff for next sale
+    cart = [];
+    updateCartUI();
+    setDepositMode(false); // Reset to full payment
+    document.getElementById('customerName').value = '';
+    document.getElementById('customerPhone').value = '';
+    goToCustomerStep();
+}
+
+function printReceipt() {
+    window.location.href = 'receipt.html';
 }

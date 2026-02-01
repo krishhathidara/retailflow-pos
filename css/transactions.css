@@ -27,8 +27,13 @@
 }
 
 /* Views */
-.view-section { display: none; }
-.view-section.active { display: block; }
+.view-section {
+    display: none;
+}
+
+.view-section.active {
+    display: block;
+}
 
 /* Status Badges */
 .badge {
@@ -40,15 +45,170 @@
     display: inline-block;
 }
 
-.badge.paid { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-.badge.unpaid { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-.badge.quote { background: #e0f2fe; color: #075985; border: 1px solid #bae6fd; }
-.badge.sale { background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; }
+.badge.paid {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
 
-/* Item List in Table */
-.item-summary { font-size: 0.85rem; color: var(--text-muted); max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.badge.partial {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fcd34d;
+}
+
+.badge.unpaid {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.badge.quote {
+    background: #e0f2fe;
+    color: #075985;
+    border: 1px solid #bae6fd;
+}
+
+.badge.sale {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+}
+
+/* Modal Content */
+.txn-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.txn-card {
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+}
+
+.txn-card h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.txn-card h3 span {
+    font-size: 1.2rem;
+    color: var(--primary);
+}
+
+.txn-section {
+    margin-top: 24px;
+}
+
+.txn-section h3 {
+    margin-bottom: 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.modal-items-list {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+.modal-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.modal-item:last-child {
+    border-bottom: none;
+}
+
+.modal-item .val {
+    font-weight: 600;
+}
+
+.table-container.small th,
+.table-container.small td {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+}
+
+.add-payment-box {
+    background: #f0fdf4;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px dashed #4ade80;
+    margin-top: 30px;
+}
+
+/* Progress Mini */
+.progress-mini {
+    width: 100%;
+    height: 6px;
+    background: #eee;
+    border-radius: 10px;
+    margin-top: 5px;
+    overflow: hidden;
+}
+
+.progress-inner {
+    height: 100%;
+    background: var(--primary);
+    transition: 0.3s;
+}
+
+/* Status Select (Fallback if needed, though we use View/Edit) */
+.status-select {
+    border: none;
+    background: transparent;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+}
+
+.status-select.paid {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-select.partial {
+    background: #fef9c3;
+    color: #854d0e;
+}
+
+.status-select.unpaid {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Action Buttons */
+.action-btn.edit {
+    color: var(--primary);
+    background: #f0f9ff;
+}
+
+.action-btn.edit:hover {
+    background: var(--primary);
+    color: white;
+}
 
 /* Mobile */
 @media (max-width: 768px) {
-    .tabs-container { overflow-x: auto; white-space: nowrap; }
+    .tabs-container {
+        overflow-x: auto;
+        white-space: nowrap;
+    }
 }
