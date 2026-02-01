@@ -200,6 +200,15 @@ async function processImport() {
         return;
     }
 
+    // --- FETCH CURRENT INVENTORY ---
+    let currentInventory = [];
+    try {
+        const res = await fetch(`${API_URL}/products`);
+        if (res.ok) currentInventory = await res.json();
+    } catch (e) {
+        console.error("Error fetching inventory for merge check:", e);
+    }
+
     const reader = new FileReader();
     reader.onload = async (e) => {
         const rawData = new Uint8Array(e.target.result);
@@ -212,7 +221,7 @@ async function processImport() {
             return;
         }
 
-        // --- GROUPING LOGIC FOR VARIANTS ---
+        // --- GROUPING & MERGING LOGIC ---
         const productsMap = {};
 
         rows.forEach(row => {
@@ -220,38 +229,83 @@ async function processImport() {
             if (!name) return;
 
             if (!productsMap[name]) {
-                productsMap[name] = {
-                    name: name,
-                    category: category,
-                    description: row.Description || row.description || "",
-                    price: parseFloat(row.Price || row.price || 0),
-                    stock: 0,
-                    variants: [],
-                    lowStockThreshold: parseInt(row["Low Stock Threshold"] || row.threshold || 10) || 10,
-                    isService: false
-                };
+                const existingInDb = currentInventory.find(p => p.name.toLowerCase() === name.toLowerCase());
+
+                if (existingInDb) {
+                    productsMap[name] = {
+                        _id: existingInDb._id,
+                        name: existingInDb.name,
+                        category: existingInDb.category, // Keep original category
+                        description: existingInDb.description || row.Description || "",
+                        price: existingInDb.price,
+                        stock: existingInDb.stock,
+                        variants: existingInDb.variants || [],
+                        lowStockThreshold: existingInDb.lowStockThreshold || 10,
+                        isService: existingInDb.isService || false,
+                        isExisting: true
+                    };
+
+                    // Convert to variant product if it wasn't one
+                    if (productsMap[name].variants.length === 0 && !productsMap[name].isService) {
+                        // Move global stock to variants list
+                        if (productsMap[name].stock > 0) {
+                            productsMap[name].variants.push({
+                                color: existingInDb.color || "Original",
+                                storage: existingInDb.storage || "-",
+                                imei: "N/A",
+                                price: existingInDb.price,
+                                stock: existingInDb.stock,
+                                description: existingInDb.description || ""
+                            });
+                        }
+                    }
+                } else {
+                    productsMap[name] = {
+                        name: name,
+                        category: category,
+                        description: row.Description || row.description || "",
+                        price: parseFloat(row.Price || row.price || 0),
+                        stock: 0,
+                        variants: [],
+                        lowStockThreshold: parseInt(row["Low Stock Threshold"] || row.threshold || 10) || 10,
+                        isService: false,
+                        isExisting: false
+                    };
+                }
             }
 
             const itemStock = parseInt(row.Stock || row.stock || 0) || 0;
             const itemPrice = parseFloat(row.Price || row.price || 0) || 0;
 
             const variant = {
-                color: row.Color || row.color || "",
-                storage: row.Storage || row.storage || "",
-                imei: (row.IMEI || row.imei || "").toString(),
+                color: (row.Color || row.color || "Standard").toString(),
+                storage: (row.Storage || row.storage || "-").toString(),
+                imei: (row.IMEI || row.imei || "N/A").toString(),
                 price: itemPrice,
                 stock: itemStock,
-                description: row.Description || row.description || ""
+                description: (row.Description || row.description || "").toString()
             };
 
             productsMap[name].variants.push(variant);
-            productsMap[name].stock += itemStock;
+            // If existing, we re-calculate the total stock later
+            if (!productsMap[name].isExisting) {
+                productsMap[name].stock += itemStock;
+            }
         });
 
         const finalProducts = Object.values(productsMap).map(p => {
-            if (p.variants.length === 1) {
+            // Aggregated values
+            if (p.variants.length > 0) {
+                p.stock = p.variants.reduce((sum, v) => sum + (v.stock || 0), 0);
+                p.price = Math.min(...p.variants.map(v => v.price || p.price));
+            }
+
+            // Cleanup if only 1 variant and it has no specific details
+            if (p.variants.length === 1 && !p.isExisting) {
                 const v = p.variants[0];
-                if ((!v.color || v.color === "-") && (!v.storage || v.storage === "-") && (!v.imei || v.imei === "-")) {
+                if ((!v.color || v.color === "Standard" || v.color === "-") &&
+                    (!v.storage || v.storage === "-") &&
+                    (!v.imei || v.imei === "N/A")) {
                     p.variants = [];
                     p.price = v.price;
                     p.stock = v.stock;
@@ -259,24 +313,27 @@ async function processImport() {
                     p.storage = "";
                 }
             }
-            if (p.variants.length > 0) {
-                p.price = Math.min(...p.variants.map(v => v.price));
-            }
             return p;
         });
 
         try {
             let successCount = 0;
             for (const prod of finalProducts) {
-                const res = await fetch(`${API_URL}/products`, {
-                    method: 'POST',
+                const url = prod.isExisting ? `${API_URL}/products/${prod._id}` : `${API_URL}/products`;
+                const method = prod.isExisting ? 'PUT' : 'POST';
+
+                // Cleanup temporary flag
+                delete prod.isExisting;
+
+                const res = await fetch(url, {
+                    method: method,
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(prod)
                 });
                 if (res.ok) successCount++;
             }
 
-            alert(`Successfully imported ${successCount} products!`);
+            alert(`Successfully processed ${successCount} products!`);
             location.reload();
         } catch (err) {
             console.error("Import Error:", err);
