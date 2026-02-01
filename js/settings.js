@@ -7,7 +7,24 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('employeesSection').classList.contains('active')) {
         fetchEmployees();
     }
+    fetchCategoriesForSettings();
 });
+
+async function fetchCategoriesForSettings() {
+    try {
+        const res = await fetch(`${API_URL}/categories`);
+        const categories = await res.json();
+        const select = document.getElementById('importCategory');
+        if (!select) return;
+
+        categories.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat.name;
+            opt.innerText = cat.name;
+            select.appendChild(opt);
+        });
+    } catch (err) { console.error("Error fetching categories:", err); }
+}
 
 function switchTab(tabId) {
     // UI Tab Switching Logic
@@ -144,4 +161,127 @@ async function deleteEmployee(id) {
     } catch (err) {
         console.error(err);
     }
+}
+
+// --- INVENTORY IMPORT ---
+
+function downloadTemplate() {
+    const data = [
+        ["Name", "Price", "Description", "Color", "Storage", "IMEI", "Stock", "Low Stock Threshold"],
+        ["iPhone 15 Pro", 999.99, "Latest iPhone", "Natural Titanium", "128GB", "IMEI_12345", 1, 10],
+        ["iPhone 15 Pro", 979.99, "Latest iPhone", "Blue Titanium", "256GB", "IMEI_67890", 1, 10],
+        ["AirPods Pro", 249.00, "Noise cancelling", "-", "-", "-", 50, 5]
+    ];
+
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Layout");
+    XLSX.writeFile(wb, "Inventory_Layout_Template.xlsx");
+}
+
+let selectedImportFile = null;
+
+function handleFileSelect(e) {
+    const file = e.target.files[0];
+    if (file) {
+        selectedImportFile = file;
+        document.getElementById('fileNameDisplay').innerText = file.name;
+    }
+}
+
+async function processImport() {
+    const category = document.getElementById('importCategory').value;
+    if (!category) {
+        alert("Please select a category first.");
+        return;
+    }
+    if (!selectedImportFile) {
+        alert("Please select an Excel file first.");
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const rawData = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(rawData, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+        if (rows.length === 0) {
+            alert("The Excel file is empty.");
+            return;
+        }
+
+        // --- GROUPING LOGIC FOR VARIANTS ---
+        const productsMap = {};
+
+        rows.forEach(row => {
+            const name = (row.Name || row.name || "").trim();
+            if (!name) return;
+
+            if (!productsMap[name]) {
+                productsMap[name] = {
+                    name: name,
+                    category: category,
+                    description: row.Description || row.description || "",
+                    price: parseFloat(row.Price || row.price || 0),
+                    stock: 0,
+                    variants: [],
+                    lowStockThreshold: parseInt(row["Low Stock Threshold"] || row.threshold || 10) || 10,
+                    isService: false
+                };
+            }
+
+            const itemStock = parseInt(row.Stock || row.stock || 0) || 0;
+            const itemPrice = parseFloat(row.Price || row.price || 0) || 0;
+
+            const variant = {
+                color: row.Color || row.color || "",
+                storage: row.Storage || row.storage || "",
+                imei: (row.IMEI || row.imei || "").toString(),
+                price: itemPrice,
+                stock: itemStock,
+                description: row.Description || row.description || ""
+            };
+
+            productsMap[name].variants.push(variant);
+            productsMap[name].stock += itemStock;
+        });
+
+        const finalProducts = Object.values(productsMap).map(p => {
+            if (p.variants.length === 1) {
+                const v = p.variants[0];
+                if ((!v.color || v.color === "-") && (!v.storage || v.storage === "-") && (!v.imei || v.imei === "-")) {
+                    p.variants = [];
+                    p.price = v.price;
+                    p.stock = v.stock;
+                    p.color = "";
+                    p.storage = "";
+                }
+            }
+            if (p.variants.length > 0) {
+                p.price = Math.min(...p.variants.map(v => v.price));
+            }
+            return p;
+        });
+
+        try {
+            let successCount = 0;
+            for (const prod of finalProducts) {
+                const res = await fetch(`${API_URL}/products`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(prod)
+                });
+                if (res.ok) successCount++;
+            }
+
+            alert(`Successfully imported ${successCount} products!`);
+            location.reload();
+        } catch (err) {
+            console.error("Import Error:", err);
+            alert("Error during import. Check console.");
+        }
+    };
+    reader.readAsArrayBuffer(selectedImportFile);
 }

@@ -185,7 +185,7 @@
                                 <p class="text-muted text-sm">Download your store data</p>
                             </div>
                             <div class="card-body v-stack">
-                                <button class="btn btn-outline w-100 text-left">
+                                <button class="btn btn-outline w-100 text-left" onclick="downloadTemplate()">
                                     <span class="material-icons-round">description</span> Download Excel Template
                                 </button>
                                 <button class="btn btn-outline w-100 text-left">
@@ -203,12 +203,26 @@
                                 <p class="text-muted text-sm">Import data from Excel files</p>
                             </div>
                             <div class="card-body">
-                                <div class="drop-zone">
-                                    <span class="material-icons-round big-icon">upload_file</span>
-                                    <p>Drop your file here</p>
-                                    <span class="text-sm text-muted">or click to browse</span>
-                                    <button class="btn btn-sm btn-outline mt-2">Choose File</button>
+                                <div class="form-group" style="margin-bottom: 1rem;">
+                                    <label>Import Category</label>
+                                    <select id="importCategory" class="form-control"
+                                        style="width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px;">
+                                        <option value="" disabled selected>Select Category for Import</option>
+                                    </select>
+                                    <p class="text-xs text-muted mt-1">Items will be imported only for the selected
+                                        category.</p>
                                 </div>
+                                <div class="drop-zone" onclick="document.getElementById('importFile').click()"
+                                    style="cursor: pointer;">
+                                    <span class="material-icons-round big-icon">upload_file</span>
+                                    <p id="fileNameDisplay">Drop your file here</p>
+                                    <span class="text-sm text-muted">or click to browse</span>
+                                    <input type="file" id="importFile" accept=".xlsx, .xls" style="display: none;"
+                                        onchange="handleFileSelect(event)">
+                                </div>
+                                <button class="btn btn-primary w-100 mt-2" onclick="processImport()">
+                                    <span class="material-icons-round">upload</span> Start Import
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -280,6 +294,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <script src="js/settings.js?v=2.0"></script>
 </body>
 
