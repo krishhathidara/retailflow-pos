@@ -1,5 +1,6 @@
-// Use NEXT_PUBLIC_API_URL for frontend to point to the correct API URL
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api'; // Fallback to local server for local development
+const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000/api'
+    : '/api';
 
 document.addEventListener('DOMContentLoaded', () => {
     loadDashboardData();
@@ -35,9 +36,9 @@ async function loadDashboardData() {
         updateKPIs(validSales, products);
         renderChart(validSales);
         renderTopProducts(validSales);
-        
+
         // We still show ALL transactions in the "Recent" table so you can see quotes came in
-        renderRecentTable(allTransactions); 
+        renderRecentTable(allTransactions);
 
     } catch (err) {
         console.error("Dashboard Error:", err);
@@ -50,24 +51,24 @@ function updateKPIs(sales, products) {
     // Sum Revenue (Only from valid sales)
     const totalRev = sales.reduce((sum, s) => sum + (s.totals?.total || 0), 0);
     // Count Orders (Only valid sales)
-    const totalOrders = sales.length; 
+    const totalOrders = sales.length;
     // Avg Value
     const avgOrder = totalOrders > 0 ? totalRev / totalOrders : 0;
-    
+
     // Low Stock (Checks real inventory)
     const lowStock = products.filter(p => !p.isService && p.stock <= (p.lowStockThreshold || 10)).length;
 
     // Update UI
-    document.getElementById('totalRevenue').innerText = `$${totalRev.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+    document.getElementById('totalRevenue').innerText = `$${totalRev.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
     document.getElementById('totalOrders').innerText = totalOrders;
     document.getElementById('avgOrderVal').innerText = `$${avgOrder.toFixed(2)}`;
-    
+
     const lowStockEl = document.getElementById('lowStockCount');
     lowStockEl.innerText = lowStock;
-    
+
     // Turn card red if low stock
     const iconWrapper = lowStockEl.closest('.stat-card').querySelector('.stat-icon-wrapper');
-    if(lowStock > 0) {
+    if (lowStock > 0) {
         iconWrapper.classList.remove('red');
         iconWrapper.style.backgroundColor = '#fee2e2';
         iconWrapper.style.color = '#ef4444';
@@ -81,12 +82,12 @@ function renderChart(sales) {
     if (!ctx) return;
 
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const data = [0,0,0,0,0,0,0];
+    const data = [0, 0, 0, 0, 0, 0, 0];
     const labels = [];
     const today = new Date();
 
     // Labels for last 7 days
-    for(let i=6; i>=0; i--) {
+    for (let i = 6; i >= 0; i--) {
         const d = new Date();
         d.setDate(today.getDate() - i);
         labels.push(days[d.getDay()]);
@@ -96,8 +97,8 @@ function renderChart(sales) {
     sales.forEach(s => {
         const sDate = new Date(s.date);
         const diffTime = Math.abs(today - sDate);
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)); 
-        if(diffDays < 7) data[6 - diffDays] += s.totals.total;
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        if (diffDays < 7) data[6 - diffDays] += s.totals.total;
     });
 
     if (window.mySalesChart) window.mySalesChart.destroy();
@@ -131,23 +132,23 @@ function renderTopProducts(sales) {
     const list = document.getElementById('topProductsList');
     list.innerHTML = '';
 
-    if(sales.length === 0) {
+    if (sales.length === 0) {
         list.innerHTML = '<div style="padding:20px; text-align:center; color:#999">No confirmed sales yet</div>';
         return;
     }
 
     const counts = {};
     sales.forEach(s => {
-        if(s.items && Array.isArray(s.items)) {
+        if (s.items && Array.isArray(s.items)) {
             s.items.forEach(i => {
-                if(!counts[i.name]) counts[i.name] = { qty: 0, rev: 0 };
+                if (!counts[i.name]) counts[i.name] = { qty: 0, rev: 0 };
                 counts[i.name].qty += i.qty;
                 counts[i.name].rev += (i.price * i.qty);
             });
         }
     });
 
-    const sorted = Object.entries(counts).sort((a,b) => b[1].qty - a[1].qty).slice(0, 5);
+    const sorted = Object.entries(counts).sort((a, b) => b[1].qty - a[1].qty).slice(0, 5);
 
     sorted.forEach(([name, data]) => {
         const div = document.createElement('div');
@@ -170,23 +171,23 @@ function renderTopProducts(sales) {
 function renderRecentTable(transactions) {
     const tbody = document.getElementById('recentSalesTable');
     tbody.innerHTML = '';
-    
+
     // Show latest 5
     const recent = transactions.slice(0, 5);
 
-    if(recent.length === 0) {
+    if (recent.length === 0) {
         tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:15px; color:#999">No recent activity</td></tr>';
         return;
     }
 
     recent.forEach(s => {
         const tr = document.createElement('tr');
-        const time = new Date(s.date).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-        
+        const time = new Date(s.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
         // Determine Badge Color & Label
         let statusClass = 'paid';
         let statusText = s.payment.status;
-        
+
         if (s.type === 'quote') {
             statusText = 'QUOTE'; // Explicitly label it as QUOTE
             statusClass = 'unpaid'; // Make it red/orange

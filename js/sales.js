@@ -1,6 +1,8 @@
 // js/sales.js - VERSION 2.0 (Price Fix)
 console.log("Sales JS v2.0 Loaded");
-const API_URL = 'http://localhost:5000/api'; // Connects to local server
+const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000/api'
+    : '/api';
 
 let products = [];
 let cart = [];

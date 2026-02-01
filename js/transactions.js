@@ -1,5 +1,8 @@
 // js/transactions.js
-const API_URL = 'http://localhost:5000/api/sales';
+const URL_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000/api'
+    : '/api';
+const API_URL = `${URL_BASE}/sales`;
 let allSales = [];
 let allCustomers = [];
 

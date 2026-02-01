@@ -1,4 +1,7 @@
-const API_URL = 'http://localhost:5000/api/products'; // Connects to your existing backend
+const URL_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000/api'
+    : '/api';
+const API_URL = `${URL_BASE}/products`;
 
 // --- LOAD SALES PAGE ---
 if (document.getElementById('productGrid')) {
@@ -8,12 +11,12 @@ if (document.getElementById('productGrid')) {
 // --- LOAD INVENTORY PAGE ---
 if (document.getElementById('inventoryTableBody')) {
     fetchInventory();
-    
+
     // Add Product Form Handler
     const form = document.getElementById('addProductForm');
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
+
         const newProduct = {
             name: document.getElementById('name').value,
             category: document.getElementById('category').value,
@@ -77,7 +80,7 @@ async function fetchInventory() {
         const res = await fetch(API_URL);
         const products = await res.json();
 
-        tbody.innerHTML = ''; 
+        tbody.innerHTML = '';
 
         products.forEach(product => {
             const row = document.createElement('tr');
@@ -96,7 +99,7 @@ async function fetchInventory() {
 }
 
 async function deleteProduct(id) {
-    if(confirm('Delete this item?')) {
+    if (confirm('Delete this item?')) {
         await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
         fetchInventory();
     }
@@ -114,9 +117,9 @@ function renderCart() {
     const container = document.getElementById('cartItems');
     const totalEl = document.getElementById('cartTotal');
     const btn = document.querySelector('.checkout-btn');
-    
+
     container.innerHTML = '';
-    
+
     let total = 0;
 
     cart.forEach((item, index) => {

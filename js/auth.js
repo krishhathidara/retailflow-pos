@@ -1,7 +1,9 @@
-const API_URL = 'http://localhost:5000/api';
+const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000/api'
+    : '/api';
 
 document.addEventListener('DOMContentLoaded', () => {
-    
+
     // 1. Detect Signup Mode from URL
     const params = new URLSearchParams(window.location.search);
     if (params.get('mode') === 'signup') {
@@ -30,7 +32,7 @@ async function handleAuth(e) {
     e.preventDefault();
     const email = document.getElementById('emailInput').value;
     const btn = document.getElementById('submitBtn');
-    
+
     // UI Loading
     const originalText = btn.innerText;
     btn.innerText = 'Processing...';
@@ -44,7 +46,7 @@ async function handleAuth(e) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: email, password: "any" })
         });
-        
+
         // If backend responds (Success or Fail)
         if (res.ok) {
             window.location.href = 'dashboard.html';
@@ -72,7 +74,7 @@ function toggleToSignup() {
     document.getElementById('submitBtn').innerText = 'Create Account';
     document.getElementById('switchLabel').innerText = 'Already have an account?';
     document.getElementById('toggleAuth').innerText = 'Sign In';
-    
+
     const url = new URL(window.location);
     url.searchParams.set('mode', 'signup');
     window.history.pushState({}, '', url);
@@ -84,7 +86,7 @@ function toggleToLogin() {
     document.getElementById('submitBtn').innerText = 'Sign In';
     document.getElementById('switchLabel').innerText = 'Don\'t have an account?';
     document.getElementById('toggleAuth').innerText = 'Sign Up';
-    
+
     const url = new URL(window.location);
     url.searchParams.delete('mode');
     window.history.pushState({}, '', url);

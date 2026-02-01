@@ -443,4 +443,8 @@ app.post('/api/employees/verify', async (req, res) => {
 });
 
 // --- START SERVER ---
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+}
+
+module.exports = app;
