@@ -229,13 +229,13 @@ async function processImport() {
             if (!name) return;
 
             if (!productsMap[name]) {
-                const existingInDb = currentInventory.find(p => p.name.toLowerCase() === name.toLowerCase());
+                const existingInDb = currentInventory.find(p => p.name.trim().toLowerCase() === name.toLowerCase());
 
                 if (existingInDb) {
                     productsMap[name] = {
                         _id: existingInDb._id,
                         name: existingInDb.name,
-                        category: existingInDb.category, // Keep original category
+                        category: category, // source of truth for import
                         description: existingInDb.description || row.Description || "",
                         price: existingInDb.price,
                         stock: existingInDb.stock,
@@ -247,15 +247,14 @@ async function processImport() {
 
                     // Convert to variant product if it wasn't one
                     if (productsMap[name].variants.length === 0 && !productsMap[name].isService) {
-                        // Move global stock to variants list
                         if (productsMap[name].stock > 0) {
                             productsMap[name].variants.push({
-                                color: existingInDb.color || "Original",
-                                storage: existingInDb.storage || "-",
+                                color: (existingInDb.color || "Original").toString(),
+                                storage: (existingInDb.storage || "-").toString(),
                                 imei: "N/A",
                                 price: existingInDb.price,
                                 stock: existingInDb.stock,
-                                description: existingInDb.description || ""
+                                description: (existingInDb.description || "").toString()
                             });
                         }
                     }
@@ -286,8 +285,26 @@ async function processImport() {
                 description: (row.Description || row.description || "").toString()
             };
 
-            productsMap[name].variants.push(variant);
-            // If existing, we re-calculate the total stock later
+            // --- VARIANT DEDUPLICATION ---
+            const existingV = productsMap[name].variants.find(v => {
+                if (variant.imei !== "N/A" && v.imei === variant.imei) return true;
+                if (variant.imei === "N/A" && v.color === variant.color && v.storage === variant.storage) return true;
+                return false;
+            });
+
+            if (existingV) {
+                // If it exists, update stock instead of doubling
+                if (variant.imei !== "N/A") {
+                    existingV.stock = itemStock; // Overwrite for unique serialized items
+                } else {
+                    existingV.stock += itemStock; // Accumulate for bulk items
+                }
+                existingV.price = itemPrice;
+                if (variant.description) existingV.description = variant.description;
+            } else {
+                productsMap[name].variants.push(variant);
+            }
+
             if (!productsMap[name].isExisting) {
                 productsMap[name].stock += itemStock;
             }
